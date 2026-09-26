@@ -42,7 +42,13 @@ const ACTION_LABELS: Record<string, { title: string; hint: string }> = {
 };
 
 const SAVE_KEY = "cascade.save.v1";
+const SAVE_META_KEY = "cascade.save.meta.v1";
 const SETTINGS_KEY = "cascade.settings.v1";
+const TAB_ID = (() => {
+  const values = new Uint32Array(2);
+  crypto.getRandomValues(values);
+  return `${values[0]!.toString(36)}-${values[1]!.toString(36)}`;
+})();
 const reducedBySystem = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let motionEnabled = !reducedBySystem;
 let soundEnabled = true;
@@ -56,6 +62,8 @@ let vehicles: Vehicle[] = [];
 let toastTimer = 0;
 let saveWarningShown = false;
 let pendingResume: GameState | null = null;
+let observedSaveToken: string | null = null;
+let saveConflictShown = false;
 let tutorialIndex: number | null = null;
 let tutorialHintLevel = 0;
 let feedbackPulses: FeedbackPulse[] = [];
@@ -321,7 +329,7 @@ function renderSelectedService(): void {
     const cost = RULES.actions[op.action];
     const disabled = entry.error ? " disabled" : "";
     const reason = entry.error ? `<small class="disabled-reason">${escapeHtml(entry.error.message)}</small>` : `<small>${escapeHtml(meta.hint)}</small>`;
-    return `<button class="action-button${disabled}" data-action-index="${index}" ${entry.error ? "disabled" : ""}>
+    return `<button class="action-button${disabled}" data-action-index="${index}" data-action="${escapeHtml(op.action)}" data-target="${escapeHtml("target" in op ? op.target : "city")}" ${entry.error ? "disabled" : ""}>
       <span><strong>${escapeHtml(meta.title)}</strong>${reason}</span>
       <span class="cost"><b>${cost.ap} AP</b>${cost.supplies ? `<em>${cost.supplies} SUP</em>` : ""}</span>
     </button>`;
@@ -707,10 +715,46 @@ function openResults(): void {
   if (!resultModal.open) resultModal.showModal();
 }
 
+interface SaveMeta {
+  token: string;
+  tabId: string;
+  revision: number;
+  savedAt: number;
+}
+
+function parseSaveMeta(raw: string | null): SaveMeta | null {
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as Partial<SaveMeta>;
+    if (typeof value.token !== "string" || typeof value.tabId !== "string"
+      || typeof value.revision !== "number" || !Number.isInteger(value.revision)
+      || typeof value.savedAt !== "number" || !Number.isFinite(value.savedAt)) return null;
+    return { token: value.token, tabId: value.tabId, revision: value.revision, savedAt: value.savedAt };
+  } catch {
+    return null;
+  }
+}
+
 function saveGame(): void {
   if (!state || tutorialIndex !== null) return;
   try {
-    localStorage.setItem(SAVE_KEY, exportReplay(state));
+    const currentMeta = parseSaveMeta(localStorage.getItem(SAVE_META_KEY));
+    if (currentMeta && currentMeta.tabId !== TAB_ID && currentMeta.token !== observedSaveToken) {
+      if (!saveConflictShown) {
+        saveConflictShown = true;
+        showToast("A newer browser tab changed this save. Autosave is paused here; reload to resume the newer copy.", "warning");
+      }
+      return;
+    }
+
+    const replay = exportReplay(state);
+    const savedAt = Date.now();
+    const token = `${savedAt.toString(36)}-${TAB_ID}-${state.revision}`;
+    const meta: SaveMeta = { token, tabId: TAB_ID, revision: state.revision, savedAt };
+    localStorage.setItem(SAVE_KEY, replay);
+    localStorage.setItem(SAVE_META_KEY, JSON.stringify(meta));
+    observedSaveToken = token;
+    saveConflictShown = false;
   } catch {
     if (!saveWarningShown) {
       saveWarningShown = true;
@@ -721,6 +765,7 @@ function saveGame(): void {
 
 function loadResume(): void {
   try {
+    observedSaveToken = parseSaveMeta(localStorage.getItem(SAVE_META_KEY))?.token ?? null;
     const text = localStorage.getItem(SAVE_KEY);
     if (!text) return;
     const imported = importReplay(text);
@@ -1203,6 +1248,14 @@ must<HTMLButtonElement>("#motion-toggle").addEventListener("click", () => {
   motionEnabled = !motionEnabled && !reducedBySystem;
   saveSettings();
   updateMotionButton();
+});
+
+window.addEventListener("storage", event => {
+  if (event.key !== SAVE_META_KEY || !state || tutorialIndex !== null) return;
+  const meta = parseSaveMeta(event.newValue);
+  if (!meta || meta.tabId === TAB_ID || meta.token === observedSaveToken) return;
+  saveConflictShown = true;
+  showToast("Another browser tab saved a newer incident. Autosave is paused here; reload to resume it.", "warning");
 });
 
 loadSettings();
