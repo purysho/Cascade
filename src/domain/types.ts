@@ -23,6 +23,14 @@ export interface Scenario {
   initial: { integrity: Vector; supplies: number; strain: number };
   rounds: DirectiveId[][];
 }
+export interface TutorialSpec {
+  id: string;
+  title: string;
+  task: string;
+  focus: ServiceId;
+  hints: string[];
+  scenario: Scenario;
+}
 export interface Directive {
   id: DirectiveId;
   name: string;
@@ -76,7 +84,10 @@ export interface Core {
   inventory: ToolId[];
   ending: Ending | null;
 }
-export type RunDescriptor = { kind: "authored"; id: string } | { kind: "seeded"; seed: string };
+export type RunDescriptor =
+  | { kind: "authored"; id: string }
+  | { kind: "seeded"; seed: string }
+  | { kind: "tutorial"; id: string };
 export interface Definition {
   schemaVersion: 1;
   rulesVersion: string; contentVersion: string; generatorVersion: string | null;
