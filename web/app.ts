@@ -759,24 +759,68 @@ function clearResolutionFeedback(): void {
   if (panel) panel.className = "resolution-feedback";
 }
 
+function replayIncidentEvents(game: GameState): DomainEvent[] {
+  try {
+    let replay = createRun(structuredClone(game.definition));
+    const events: DomainEvent[] = [];
+    for (const record of game.history) {
+      if (replay.core.phase === "draft") {
+        const choice = game.choices.find(item => item.round === replay.core.round);
+        if (!choice) break;
+        const drafted = applyCommand(replay, { type: "choose_tool", tool: choice.tool, expectedRevision: replay.revision });
+        if (!drafted.ok) break;
+        replay = drafted.state;
+      }
+      if (replay.core.round !== record.round || replay.core.phase !== "planning") break;
+      let failed = false;
+      for (const operation of record.operations) {
+        const applied = applyCommand(replay, { ...operation, expectedRevision: replay.revision });
+        if (!applied.ok) { failed = true; break; }
+        replay = applied.state;
+      }
+      if (failed) break;
+      const committed = applyCommand(replay, { type: "commit_round", expectedRevision: replay.revision });
+      if (!committed.ok) break;
+      events.push(...committed.events);
+      replay = committed.state;
+    }
+    return events;
+  } catch {
+    return [];
+  }
+}
+
 function openResults(): void {
   if (!state || !view || !state.core.ending) return;
   const ending = state.core.ending;
-  const title = ending.outcome === "win" ? "CONTROL RESTORED" : ending.outcome === "collapse" ? "CITY OVERWHELMED" : "CRISIS UNRESOLVED";
+  const incident = replayIncidentEvents(state);
+  const executed = incident.filter(event => event.kind === "order_executed").length;
+  const blocked = incident.filter(event => event.kind === "order_blocked").length;
+  const cascades = incident.filter(event => event.kind === "dependency_failure").length;
+  const title = ending.outcome === "win" ? "HUMAN AUTHORITY RESTORED" : ending.outcome === "collapse" ? "CITY OVERWHELMED" : "CRISIS UNRESOLVED";
   const resultTitle = must<HTMLElement>("#result-title");
   resultTitle.textContent = title;
   resultTitle.className = ending.outcome;
-  must<HTMLElement>("#result-copy").textContent = ending.reasons.join(" · ");
+  const framing = ending.outcome === "win"
+    ? "You did not defeat the AI. You constrained what it was allowed to do and restored accountable human control."
+    : "The optimisation system retained consequential authority long enough for local efficiencies to become systemic risk.";
+  must<HTMLElement>("#result-copy").textContent = `${framing} ${ending.reasons.join(" · ")}`;
   must<HTMLElement>("#result-stats").innerHTML = `
     <div><small>ROUND</small><strong>${state.core.round}</strong></div>
-    <div><small>STRAIN</small><strong>${state.core.strain}</strong></div>
-    <div><small>AI SCORE</small><strong>${state.core.points}</strong></div>
-    <div><small>OVERSIGHT</small><strong>${SERVICES.filter(id => state!.core.services[id].mode === "regulated").length}/4</strong></div>`;
-  const decisive = lastEvents.filter(event => ["order_executed", "order_blocked", "dependency_failure", "effect_applied", "win", "collapse", "deadline"].includes(event.kind)).slice(-6);
-  must<HTMLElement>("#result-events").innerHTML = decisive.map(event => `<li><b>${escapeHtml(eventTitle(event))}</b><span>${escapeHtml(event.detail ?? eventDelta(event))}</span></li>`).join("") || `<li><b>Final state recorded.</b><span>Replay the same crisis to test a different recovery plan.</span></li>`;
+    <div><small>AI EFFICIENCY</small><strong>${state.core.points}</strong></div>
+    <div><small>DECISIONS EXECUTED</small><strong>${executed}</strong></div>
+    <div><small>DECISIONS BLOCKED</small><strong>${blocked}</strong></div>
+    <div><small>CASCADE LINKS</small><strong>${cascades}</strong></div>
+    <div><small>HUMAN OVERSIGHT</small><strong>${SERVICES.filter(id => state!.core.services[id].mode === "regulated").length}/4</strong></div>`;
+  const significant = incident.filter(event => ["order_executed", "order_blocked", "dependency_failure", "effect_queued", "effect_applied", "win", "collapse", "deadline"].includes(event.kind));
+  const firstCascade = significant.find(event => event.kind === "dependency_failure");
+  const firstContainment = significant.find(event => event.kind === "order_blocked");
+  const turningPoint = ending.outcome === "win" ? firstContainment : firstCascade;
+  const timeline = [...(turningPoint ? [turningPoint] : []), ...significant.filter(event => event !== turningPoint).slice(-7)];
+  must<HTMLElement>("#result-events").innerHTML = timeline.map((event, index) => `<li class="${index === 0 && event === turningPoint ? "turning-point" : ""}"><b>${index === 0 && event === turningPoint ? "TURNING POINT · " : ""}${escapeHtml(eventTitle(event))}</b><span>${escapeHtml(narrativeForEvent(event))}</span><small>ROUND ${event.round}</small></li>`).join("")
+    || `<li><b>Final state recorded.</b><span>Replay the same crisis to test a different recovery plan.</span></li>`;
   if (!resultModal.open) resultModal.showModal();
 }
-
 interface SaveMeta {
   token: string;
   tabId: string;
@@ -903,6 +947,37 @@ function toggleForecast(): void {
 function openHelp(invoker: HTMLElement): void {
   helpReturnFocus = invoker;
   helpModal.showModal();
+}
+
+const STORY_BEAT_MS = 3600;
+
+function stopStoryTimer(): void {
+  window.clearTimeout(storyTimer);
+  storyTimer = 0;
+}
+
+function renderStory(): void {
+  const beats = [...storyModal.querySelectorAll<HTMLElement>("[data-story-beat]")];
+  beats.forEach((beat, index) => beat.classList.toggle("active", index === storyIndex));
+  must<HTMLElement>("#story-progress").innerHTML = beats.map((_, index) => `<i class="${index === storyIndex ? "active" : index < storyIndex ? "done" : ""}"></i>`).join("");
+  must<HTMLButtonElement>("#story-prev").disabled = storyIndex === 0;
+  must<HTMLButtonElement>("#story-next").textContent = storyIndex === beats.length - 1 ? "ENTER CONTROL ROOM →" : "NEXT →";
+  stopStoryTimer();
+  if (motionEnabled && storyModal.open && storyIndex < beats.length - 1) {
+    storyTimer = window.setTimeout(() => { storyIndex++; renderStory(); }, STORY_BEAT_MS);
+  }
+}
+
+function openStory(invoker?: HTMLElement): void {
+  storyReturnFocus = invoker ?? null;
+  storyIndex = 0;
+  if (!storyModal.open) storyModal.showModal();
+  renderStory();
+}
+
+function closeStory(): void {
+  stopStoryTimer();
+  if (storyModal.open) storyModal.close();
 }
 
 function drawCity(time: number): void {
@@ -1271,6 +1346,23 @@ canvas.addEventListener("pointerdown", event => {
 
 must<HTMLButtonElement>("#start-generated").addEventListener("click", () => startSeeded(must<HTMLInputElement>("#seed-input").value));
 must<HTMLButtonElement>("#start-tutorial").addEventListener("click", () => startTutorial(0));
+const storyBriefingButton = must<HTMLButtonElement>("#story-briefing");
+storyBriefingButton.addEventListener("click", () => openStory(storyBriefingButton));
+must<HTMLButtonElement>("#story-skip").addEventListener("click", closeStory);
+must<HTMLButtonElement>("#story-prev").addEventListener("click", () => {
+  storyIndex = Math.max(0, storyIndex - 1);
+  renderStory();
+});
+must<HTMLButtonElement>("#story-next").addEventListener("click", () => {
+  const total = storyModal.querySelectorAll("[data-story-beat]").length;
+  if (storyIndex >= total - 1) closeStory();
+  else { storyIndex++; renderStory(); }
+});
+storyModal.addEventListener("close", () => {
+  stopStoryTimer();
+  storyReturnFocus?.focus();
+  storyReturnFocus = null;
+});
 must<HTMLButtonElement>("#random-seed").addEventListener("click", () => { must<HTMLInputElement>("#seed-input").value = makeSeed(); });
 must<HTMLButtonElement>("#resume-game").addEventListener("click", () => { if (pendingResume) resume(pendingResume); });
 must<HTMLElement>("#practice-list").innerHTML = SCENARIOS.map(scenario => `<button data-scenario="${scenario.id}"><strong>${escapeHtml(scenario.name)}</strong><small>${escapeHtml(scenario.description)}</small></button>`).join("");
@@ -1342,5 +1434,8 @@ if (chatgptLogo && location.protocol !== "file:") {
   chatgptLogo.addEventListener("load", () => { chatgptLogo.hidden = false; }, { once: true });
 }
 window.setTimeout(() => bootScreen?.classList.add("loaded"), reducedBySystem ? 80 : 1350);
+if (new URLSearchParams(location.search).get("demo") === "1") {
+  window.setTimeout(() => openStory(), reducedBySystem ? 120 : 1550);
+}
 
 requestAnimationFrame(drawCity);
