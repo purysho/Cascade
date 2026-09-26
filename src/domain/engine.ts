@@ -1,4 +1,4 @@
-import { CONTENT_VERSION, RULES, SCENARIOS } from "../content/catalog.ts";
+import { CONTENT_VERSION, RULES, SCENARIOS, TUTORIALS } from "../content/catalog.ts";
 import { coreChanges, executeOperation, operationError } from "./actions.ts";
 import { emit } from "./events.ts";
 import { resolveRound } from "./resolve.ts";
@@ -29,6 +29,12 @@ export function createAuthoredRun(id: string): GameState {
   if (!scenario) throw new Error("Unknown authored crisis: " + id);
   return createRun({ schemaVersion: 1, rulesVersion: RULES.rulesVersion, contentVersion: CONTENT_VERSION,
     generatorVersion: null, descriptor: { kind: "authored", id }, scenario, offers: [] });
+}
+export function createTutorialRun(id: string): GameState {
+  const tutorial = TUTORIALS.find(t => t.id === id);
+  if (!tutorial) throw new Error("Unknown tutorial: " + id);
+  return createRun({ schemaVersion: 1, rulesVersion: RULES.rulesVersion, contentVersion: CONTENT_VERSION,
+    generatorVersion: null, descriptor: { kind: "tutorial", id }, scenario: tutorial.scenario, offers: [] });
 }
 export function currentOffer(state: GameState) {
   if (state.core.phase !== "draft") return [];
