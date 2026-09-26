@@ -48,6 +48,21 @@
       </section>
 
       <aside class="control-panel" aria-label="Operations console">
+        <section id="tutorial-panel" class="tutorial-panel hidden" aria-live="polite">
+          <header class="tutorial-header">
+            <div><span id="tutorial-step">TRAINING 1 / 4</span><strong id="tutorial-title">Read the danger</strong></div>
+            <button id="tutorial-skip" class="quiet-button" type="button">Exit training</button>
+          </header>
+          <p id="tutorial-task"></p>
+          <ul id="tutorial-checks" class="tutorial-checks"></ul>
+          <div id="tutorial-hint" class="tutorial-hint hidden"></div>
+          <footer class="tutorial-actions">
+            <button id="tutorial-reset" class="secondary-button" type="button">Reset exercise</button>
+            <button id="tutorial-help" class="secondary-button" type="button">Hint</button>
+            <button id="tutorial-next" class="start-button" type="button" disabled>Next exercise →</button>
+          </footer>
+        </section>
+
         <section class="selected-service panel-section">
           <div class="section-kicker">SELECTED SERVICE</div>
           <div class="service-heading"><div><h1 id="service-title">Power Grid</h1><p id="service-subtitle">Electricity and generation</p></div><span class="live-dot">LIVE</span></div>
@@ -100,6 +115,12 @@
 
       <section class="start-controls">
         <button id="resume-game" class="resume-card" type="button" hidden><span>CONTINUE SAVED INCIDENT</span><strong>Resume crisis</strong><small></small></button>
+        <button id="start-tutorial" class="tutorial-start-card" type="button">
+          <span>FIRST TIME?</span>
+          <strong>Guided city-control training</strong>
+          <small>Four short exercises using the real rules: read risk, break a cascade, contain safely, restore oversight.</small>
+          <b>START TRAINING →</b>
+        </button>
         <div class="start-card primary-start">
           <span class="card-kicker">RECOMMENDED</span>
           <h2>New generated crisis</h2>
