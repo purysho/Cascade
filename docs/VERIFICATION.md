@@ -71,3 +71,34 @@ The recorded run's 95th-percentile forecast time was below 0.1 ms and seeded gen
 No runtime rule regression remained after the checks. The principal implementation risks addressed were simultaneous dependency resolution, irreversible committed damage, stale repeated input, replay forgery, and forecast information leakage. Their targeted fixtures remain in the repository.
 
 Next evidence needed: a real-browser complete match, reload and offline export, followed by first-time player observations of comprehension, pacing, meaningful tool choices, and willingness to replay.
+
+
+## Stage 2 — playable browser interface
+
+Date: 26 September 2026. Branch under verification: `feat/living-city-ui`.
+
+| Area | Status | Actual evidence | Remaining limit |
+| --- | --- | --- | --- |
+| Browser build | PASS | Existing pinned TypeScript 5.9.3 emits the browser target; `npm run web:build` is part of `npm run check`. | Final self-contained single-file export is not built. |
+| Entry and onboarding | PASS for smoke scope | Chrome opened the start screen, entered seed `BROWSER-SMOKE`, started a generated crisis, and completed the initial tool draft. | Guided tutorial is not implemented. |
+| Primary controls | PASS for smoke scope | Browser selected the first legal operation, AP changed 3/3 → 2/3, Undo restored 3/3, and End Round advanced to 2/12. | Full action matrix is covered by engine tests, not every button in Chrome. |
+| Generation and replay | PASS | Generated seed loaded through the real generator; guarded save survived page reload; replay import resumed at round 2/12. | Multi-tab save-conflict handling is not implemented. |
+| Live city presentation | PASS for rendered smoke | Canvas city rendered at a measured 1440×757 viewport, DPR 1. Screenshot artifact captured. | Needs human visual review at more resolutions and on Windows. |
+| Console health | PASS | Latest browser smoke reported 0 SEVERE Chrome console entries. | Warning-level console output is not currently treated as failure. |
+| Rules/state integrity | PASS | 33 tests plus 1,000 generated crises and 1,000 automated sessions still pass in the same workflow before the browser smoke. | Finite deterministic sample, not exhaustive. |
+| Human fun/replay interest | NOT TESTED | No person has been observed playing this build. | Required before claiming fun, balanced difficulty, or strong replay desire. |
+| Tutorial comprehension | NOT TESTED | Persistent rules reference exists; guided exercises do not. | Stage 3. |
+| Audio | N/A at this stage | No audio shipped in Stage 2. | Stage 4. |
+
+### Rendered visual inspection
+
+The first recorded screenshot showed the overall hierarchy working: live city left, operations console right, current resources across the top, exact forecast over the map, and persistent objective/status text. It also exposed a concrete composition problem: the original upper Grid and Communications nodes sat partly beneath the service rail and forecast HUD. Their world positions were moved inward before the next green browser run.
+
+The city animation remains presentation-only. Its traffic, lighting, communications pulses, AI-order pulses, service rings, delayed-damage badges, and dependency links are derived from player-visible engine state or the exact current forecast. They do not alter the authoritative rules.
+
+### Browser smoke flow
+
+`entry → seeded run → tool draft → legal action → undo → commit → save → reload → resume`
+
+Latest result: PASS in Google Chrome via ChromeDriver, measured 1440×757 at DPR 1, round after resume 2/12, zero SEVERE console entries. The workflow uploads `verification/browser-smoke.png` as the `browser-smoke` artifact.
+
