@@ -764,9 +764,20 @@ function updateMotionButton(): void {
 }
 
 function updateSoundButton(): void {
-  const button = must<HTMLButtonElement>("#sound-toggle");
-  button.textContent = `Sound: ${soundEnabled ? "On" : "Muted"}`;
-  button.setAttribute("aria-pressed", String(soundEnabled));
+  const label = `Sound: ${soundEnabled ? "On" : "Muted"}`;
+  for (const selector of ["#sound-toggle", "#start-sound-toggle"]) {
+    const button = must<HTMLButtonElement>(selector);
+    button.textContent = label;
+    button.setAttribute("aria-pressed", String(soundEnabled));
+  }
+}
+
+function toggleSound(): void {
+  soundEnabled = !soundEnabled;
+  audio.setEnabled(soundEnabled);
+  saveSettings();
+  updateSoundButton();
+  if (soundEnabled) audio.playUi("confirm");
 }
 
 function showToast(message: string, tone: "danger" | "warning" | "success" | "neutral" = "neutral"): void {
@@ -1186,13 +1197,8 @@ must<HTMLButtonElement>("#tutorial-next").addEventListener("click", () => {
   else startTutorial(tutorialIndex + 1);
 });
 must<HTMLButtonElement>("#tutorial-exit").addEventListener("click", leaveTutorial);
-must<HTMLButtonElement>("#sound-toggle").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  audio.setEnabled(soundEnabled);
-  saveSettings();
-  updateSoundButton();
-  if (soundEnabled) audio.playUi("confirm");
-});
+must<HTMLButtonElement>("#sound-toggle").addEventListener("click", toggleSound);
+must<HTMLButtonElement>("#start-sound-toggle").addEventListener("click", toggleSound);
 must<HTMLButtonElement>("#motion-toggle").addEventListener("click", () => {
   motionEnabled = !motionEnabled && !reducedBySystem;
   saveSettings();
