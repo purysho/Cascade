@@ -102,3 +102,21 @@ The city animation remains presentation-only. Its traffic, lighting, communicati
 
 Latest result: PASS in Google Chrome via ChromeDriver, measured 1440×757 at DPR 1, round after resume 2/12, zero SEVERE console entries. The workflow uploads `verification/browser-smoke.png` as the `browser-smoke` artifact.
 
+
+
+## Stage 3 — guided training
+
+Date: 26 September 2026. Implementation: session-only browser tutorial layered over the unchanged Stage 2 engine/replay model.
+
+| Area | Status | Evidence | Remaining limit |
+| --- | --- | --- | --- |
+| Core engine/replay compatibility | PASS | No changes to RunDescriptor, replay import/export, generator content, or core content hash. Existing Stage 2 `npm run check` remains green. | Tutorial itself is intentionally not persisted. |
+| Four exercise states | PASS | Each exercise is created through normal `createRun` validation using standard AP, supplies, actions, orders, cascade thresholds, and forecasts. | Human clarity not yet observed. |
+| State-predicate progress | PASS | Completion reads real GameState/history/public forecast outcomes; it does not depend on screen coordinates. | Automated predicates prove mechanics, not teaching effectiveness. |
+| Reset / hints / exit | PASS | Rendered UI exposes reset, explicitly requested escalating hints, next-step gating, and exit. | No tutorial-progress persistence by design. |
+| Campaign save isolation | PASS | Chrome smoke completes training after a saved generated crisis and confirms the saved campaign remains offered afterward. | Multi-tab conflicts remain outside scope. |
+| Rendered tutorial path | PASS | Chrome completes Read danger → Break cascade → Contain safely → Restore control. | Only Chrome desktop is automated. |
+
+The first Stage 3 approach was discarded before merge because it unnecessarily extended persistent run/replay descriptors. PR #2 was closed. The clean retry starts from the green Stage 2 commit and keeps training outside campaign persistence.
+
+The extended browser smoke records `verification/tutorial-smoke.png` in addition to the existing campaign screenshot.
