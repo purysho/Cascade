@@ -62,6 +62,11 @@ async function text(session, selector) {
 }
 async function click(session, selector) {
   const id = await waitElement(session, selector);
+  await webdriver(`/session/${session}/execute/sync`, "POST", {
+    script: "arguments[0].scrollIntoView({ block: 'center', inline: 'nearest' });",
+    args: [{ [elementKey]: id }],
+  });
+  await wait(50);
   await webdriver(`/session/${session}/element/${id}/click`, "POST", {});
 }
 async function setValue(session, selector, value) {
