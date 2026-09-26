@@ -146,8 +146,11 @@ function descriptorLabel(game: GameState): string {
 }
 
 function activeTutorial() {
-  if (!state || state.definition.descriptor.kind !== "tutorial") return null;
-  return TUTORIALS.find(tutorial => tutorial.id === state!.definition.descriptor.id) ?? null;
+  if (!state) return null;
+  const descriptor = state.definition.descriptor;
+  if (descriptor.kind !== "tutorial") return null;
+  const tutorialId = descriptor.id;
+  return TUTORIALS.find(tutorial => tutorial.id === tutorialId) ?? null;
 }
 
 function startSeeded(seedText?: string): void {
@@ -173,9 +176,9 @@ function startTutorial(index = 0): void {
 
 function begin(game: GameState): void {
   state = game;
-  const tutorial = game.definition.descriptor.kind === "tutorial"
-    ? TUTORIALS.find(item => item.id === game.definition.descriptor.id)
-    : null;
+  const descriptor = game.definition.descriptor;
+  const tutorialId = descriptor.kind === "tutorial" ? descriptor.id : null;
+  const tutorial = tutorialId ? TUTORIALS.find(item => item.id === tutorialId) : null;
   selected = tutorial?.focus ?? "grid";
   lastEvents = [];
   rebuildCity(descriptorLabel(game));
@@ -187,9 +190,9 @@ function begin(game: GameState): void {
 
 function resume(game: GameState): void {
   state = game;
-  tutorialIndex = game.definition.descriptor.kind === "tutorial"
-    ? TUTORIALS.findIndex(item => item.id === game.definition.descriptor.id)
-    : null;
+  const descriptor = game.definition.descriptor;
+  const tutorialId = descriptor.kind === "tutorial" ? descriptor.id : null;
+  tutorialIndex = tutorialId ? TUTORIALS.findIndex(item => item.id === tutorialId) : null;
   selected = tutorialIndex !== null && tutorialIndex >= 0 ? TUTORIALS[tutorialIndex]!.focus : "grid";
   lastEvents = [];
   rebuildCity(descriptorLabel(game));
