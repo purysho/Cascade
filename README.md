@@ -6,7 +6,7 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 
 ## Current status
 
-**Stage 2 complete: Cascade now has a playable browser match built directly on the verified deterministic engine.**
+**Stage 3 complete: Cascade now has a playable browser match plus four guided training exercises built on the same deterministic engine.**
 
 - Four connected services, twelve rounds, three action points per round.
 - Seven operational actions, eight unsafe directives, and three authored practice crises.
@@ -17,10 +17,11 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 - Guarded browser save/resume using the existing replay validator; invalid or incompatible saved state is not trusted.
 - Same-crisis replay and fresh-seed replay.
 - Reduced-motion support and an in-game rules reference.
+- Four guided exercises: read an unsafe optimisation, break a dependency cascade, contain a live order with backup + isolation, and install permanent oversight.
 
 The engine stress sample still covers **1,000 reproducible seeds and 1,000 automated sessions**. The rendered browser smoke test now also exercises entry, seeded generation, the tool draft, a legal action, undo, round commitment, save, reload, and resume in Google Chrome. The latest measured CI viewport was **1440×757 at DPR 1**, with **zero SEVERE console entries** and a screenshot artifact recorded.
 
-Human difficulty, fun, 8–12 minute pacing, guided tutorial comprehension, audio, and the final self-contained offline package remain unverified.
+Human difficulty, fun, 8–12 minute pacing, first-time tutorial comprehension, audio, and the final self-contained offline package remain unverified.
 
 ## Run Cascade
 
@@ -67,10 +68,9 @@ The current source builds an offline-capable static browser game in `dist-web/`;
 
 The next milestones are:
 
-1. Stage 3 — guided tutorial exercises using normal engine rules and state predicates.
-2. Stage 4 — sound cues, final polish, and any additional original visual assets justified by playtesting.
-3. Stage 5 — broader browser/Windows checks and human playtests for comprehension, pacing, strategy variety, and replay interest.
-4. Stage 6 — self-contained `Cascade-Play.html`, extracted-package verification, credits/disclosures, and demo materials.
+1. Stage 4 — sound cues, final polish, and any additional original visual assets justified by playtesting.
+2. Stage 5 — broader browser/Windows checks and human playtests for comprehension, pacing, strategy variety, and replay interest.
+3. Stage 6 — self-contained `Cascade-Play.html`, extracted-package verification, credits/disclosures, and demo materials.
 
 Repository work is authorised. Website deployment and competition submission have not been requested.
 
