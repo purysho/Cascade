@@ -195,7 +195,7 @@ try {
     if (await dialogOpen(session, "#result-modal")) break;
     await waitText(session, "#round-value", `${roundIndex + 2}/12`);
   }
-  await waitText(session, "#result-title", "CONTROL RESTORED");
+  await waitText(session, "#result-title", "HUMAN AUTHORITY RESTORED");
   await screenshot(session, "stage5-win.png");
 
   // Same-crisis replay must restart from the initial state.
