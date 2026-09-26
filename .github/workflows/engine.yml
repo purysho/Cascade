@@ -20,6 +20,8 @@ jobs:
       - run: npm run browser:smoke
       - run: npm run stage5:smoke
       - run: npm run launch:capture
+      - name: Install FFmpeg for launch trailer
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm run launch:video
       - run: npm run release
         env:
