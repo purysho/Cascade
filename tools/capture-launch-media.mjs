@@ -48,7 +48,9 @@ try {
   const created = await wd("/session","POST",{capabilities:{alwaysMatch:{browserName:"chrome","goog:chromeOptions":{args:["--headless=new","--no-sandbox","--disable-gpu","--window-size=1920,1223","--force-device-scale-factor=1",`--user-data-dir=${profile}`]}}}});
   session = created.sessionId;
   await wd(`/session/${session}/url`,"POST",{url:"http://127.0.0.1:4173/"});
-  await wait(1700);
+  await wait(450);
+  await shot(session,"cascade-boot.png");
+  await wait(1250);
   await exec(session,"document.documentElement.style.zoom='0.9';");
   await shot(session,"cascade-menu.png");
 
