@@ -62,6 +62,11 @@ async function text(session, selector) {
 }
 async function click(session, selector) {
   const id = await waitElement(session, selector);
+  await webdriver(`/session/${session}/execute/sync`, "POST", {
+    script: "arguments[0].scrollIntoView({ block: 'center', inline: 'nearest' });",
+    args: [{ [elementKey]: id }],
+  });
+  await wait(50);
   await webdriver(`/session/${session}/element/${id}/click`, "POST", {});
 }
 async function setValue(session, selector, value) {
@@ -75,6 +80,15 @@ async function waitText(session, selector, expected) {
     await wait(100);
   }
   fail(`Expected ${selector} to read "${expected}", got "${await text(session, selector)}"`);
+}
+async function waitEnabled(session, selector) {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const id = await waitElement(session, selector);
+    const disabled = await webdriver(`/session/${session}/element/${id}/property/disabled`);
+    if (!disabled) return;
+    await wait(100);
+  }
+  fail("Timed out waiting for enabled element " + selector);
 }
 
 let session;
@@ -137,6 +151,46 @@ try {
   const screenshot = await webdriver(`/session/${session}/screenshot`);
   writeFileSync(resolve(verification, "browser-smoke.png"), Buffer.from(screenshot, "base64"));
 
+  // Guided training is session-only: complete all four exercises, then verify
+  // the previously saved campaign is still offered unchanged.
+  await webdriver(`/session/${session}/url`, "POST", { url: "http://127.0.0.1:4173/" });
+  await click(session, "#start-tutorial");
+
+  await waitText(session, "#tutorial-title", "Read the danger");
+  await click(session, "#commit");
+  await waitEnabled(session, "#tutorial-next");
+  await click(session, "#tutorial-next");
+
+  await waitText(session, "#tutorial-title", "Break the cascade");
+  await click(session, ".action-button:nth-child(1)");
+  await waitText(session, "#ap-value", "2/3");
+  await click(session, "#commit");
+  await waitEnabled(session, "#tutorial-next");
+  await click(session, "#tutorial-next");
+
+  await waitText(session, "#tutorial-title", "Contain safely");
+  await click(session, ".action-button:nth-child(2)");
+  await click(session, ".action-button:nth-child(3)");
+  await waitText(session, "#capacity-value", "3/6");
+  await click(session, "#commit");
+  await waitEnabled(session, "#tutorial-next");
+  await click(session, "#tutorial-next");
+
+  await waitText(session, "#tutorial-title", "Restore control");
+  await click(session, ".action-button:nth-child(2)");
+  await click(session, ".action-button:nth-child(5)");
+  await waitText(session, "#mode-value", "HUMAN OVERSIGHT");
+  await waitEnabled(session, "#tutorial-next");
+
+  const tutorialScreenshot = await webdriver(`/session/${session}/screenshot`);
+  writeFileSync(resolve(verification, "tutorial-smoke.png"), Buffer.from(tutorialScreenshot, "base64"));
+
+  await click(session, "#tutorial-exit");
+  await waitElement(session, "#start-generated");
+  const resumeAfterTraining = await waitElement(session, "#resume-game");
+  const resumeHiddenAfterTraining = await webdriver(`/session/${session}/element/${resumeAfterTraining}/property/hidden`);
+  if (resumeHiddenAfterTraining === true) fail("Guided training overwrote or hid the saved campaign.");
+
   let logs = [];
   try {
     logs = await webdriver(`/session/${session}/se/log`, "POST", { type: "browser" });
@@ -156,8 +210,9 @@ try {
     browser: "Google Chrome via ChromeDriver",
     viewport,
     flow: ["entry", "seeded run", "tool draft", "legal action", "undo", "commit", "save", "reload", "resume"],
-    roundAfterResume: await text(session, "#round-value"),
+    tutorialFlow: ["read danger", "break cascade", "contain safely", "restore control", "exit without overwriting campaign"],
     screenshot: "verification/browser-smoke.png",
+    tutorialScreenshot: "verification/tutorial-smoke.png",
     severeConsoleEntries: severe.length,
   }, null, 2));
 } finally {

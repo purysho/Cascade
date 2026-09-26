@@ -22,5 +22,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-smoke
-          path: verification/browser-smoke.png
+          path: |
+            verification/browser-smoke.png
+            verification/tutorial-smoke.png
           if-no-files-found: ignore

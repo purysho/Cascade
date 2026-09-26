@@ -14,6 +14,7 @@ import {
   type ServiceId,
   type ToolId,
 } from "../src/index.ts";
+import { TUTORIALS, createTutorialState } from "./tutorial.ts";
 
 type PlayerView = ReturnType<typeof projectForPlayer>;
 type CommandInput = Operation | { type: "undo" } | { type: "commit_round" } | { type: "choose_tool"; tool: ToolId | null };
@@ -50,6 +51,8 @@ let vehicles: Vehicle[] = [];
 let toastTimer = 0;
 let saveWarningShown = false;
 let pendingResume: GameState | null = null;
+let tutorialIndex: number | null = null;
+let tutorialHintLevel = 0;
 
 function must<T extends Element>(selector: string): T {
   const element = document.querySelector(selector);
@@ -74,6 +77,7 @@ const eventLog = must<HTMLElement>("#event-log");
 const forecastBody = must<HTMLElement>("#forecast-body");
 const forecastPanel = must<HTMLElement>("#forecast-panel");
 const coach = must<HTMLElement>("#coach");
+const tutorialPanel = must<HTMLElement>("#tutorial-panel");
 
 function escapeHtml(value: unknown): string {
   return String(value)
@@ -134,24 +138,42 @@ function makeSeed(): string {
   return `CITY-${values[0]!.toString(36)}-${values[1]!.toString(36)}`.toUpperCase();
 }
 
+function activeTutorial() {
+  return tutorialIndex === null ? null : TUTORIALS[tutorialIndex] ?? null;
+}
+
 function descriptorLabel(game: GameState): string {
+  const tutorial = activeTutorial();
+  if (tutorial) return `TRAINING-${tutorial.id.toUpperCase()}`;
   return game.definition.descriptor.kind === "seeded"
     ? game.definition.descriptor.seed
     : `PRACTICE-${game.definition.descriptor.id.toUpperCase()}`;
 }
 
 function startSeeded(seedText?: string): void {
+  tutorialIndex = null;
+  tutorialHintLevel = 0;
   const chosen = seedText?.trim() || makeSeed();
   begin(createSeededRun(chosen));
 }
 
 function startAuthored(id: string): void {
+  tutorialIndex = null;
+  tutorialHintLevel = 0;
   begin(createAuthoredRun(id));
+}
+
+function startTutorial(index = 0): void {
+  const tutorial = TUTORIALS[index];
+  if (!tutorial) return;
+  tutorialIndex = index;
+  tutorialHintLevel = 0;
+  begin(createTutorialState(tutorial.id));
 }
 
 function begin(game: GameState): void {
   state = game;
-  selected = "grid";
+  selected = activeTutorial()?.focus ?? "grid";
   lastEvents = [];
   rebuildCity(descriptorLabel(game));
   startScreen.classList.add("hidden");
@@ -161,6 +183,8 @@ function begin(game: GameState): void {
 }
 
 function resume(game: GameState): void {
+  tutorialIndex = null;
+  tutorialHintLevel = 0;
   state = game;
   selected = "grid";
   lastEvents = [];
@@ -171,6 +195,10 @@ function resume(game: GameState): void {
 
 function restartSame(): void {
   if (!state) return;
+  if (tutorialIndex !== null) {
+    startTutorial(tutorialIndex);
+    return;
+  }
   const descriptor = state.definition.descriptor;
   if (descriptor.kind === "seeded") startSeeded(descriptor.seed);
   else startAuthored(descriptor.id);
@@ -201,6 +229,7 @@ function refresh(): void {
   renderForecast();
   renderEvents();
   renderCoach();
+  renderTutorial();
   renderDraft();
   must<HTMLButtonElement>("#undo").disabled = !view.canUndo;
   must<HTMLButtonElement>("#commit").disabled = !view.canCommit;
@@ -403,13 +432,143 @@ function renderCoach(): void {
   if (!view) return;
   const core = view.core;
   const threatened = view.directives.filter(d => d.blockedBy.length === 0);
-  let message = "Select a district, inspect the round forecast, then spend up to three action points.";
+  let message = activeTutorial()
+    ? "Training uses the same engine and costs as a real crisis. Complete the live checklist in the operations console."
+    : "Select a district, inspect the round forecast, then spend up to three action points.";
   if (core.phase === "draft") message = "Choose one emergency tool. It is consumable, and you can use at most one tool this round.";
   else if (threatened.length > 0 && core.round === 1) message = "Unchecked AI orders resolve when you end the round. Isolation or a veto can stop an order, but durable oversight is the long-term objective.";
   else if (view.restorationMissing.length === 0) message = `The city meets every lasting condition. Hold stability for ${Math.max(0, 2 - core.stableStreak)} more round${core.stableStreak === 1 ? "" : "s"}.`;
   else if (core.ap === 0) message = "No action points remain. Review the forecast, undo if needed, or end the round.";
   else if (core.strain >= 10) message = "Public strain is high. Protect service availability now; collapse occurs at strain 16 or two simultaneous outages.";
   coach.textContent = message;
+}
+
+
+function tutorialStatus(): { complete: boolean; checks: { done: boolean; label: string }[] } | null {
+  if (!state || !view) return null;
+  const tutorial = activeTutorial();
+  if (!tutorial) return null;
+  const roundOne = state.history.find(record => record.round === 1);
+
+  if (tutorial.id === "read_danger") {
+    const liveOrder = state.history.length > 0 || view.directives.some(directive => directive.id === "G1" && directive.blockedBy.length === 0);
+    const forecastShowsTransfer = state.history.length > 0 || Boolean(
+      view.forecast
+      && view.forecast.end.services.grid.integrity > view.core.services.grid.integrity
+      && view.forecast.end.services.emergency.integrity < view.core.services.emergency.integrity
+    );
+    const observed = Boolean(roundOne)
+      && state.core.services.grid.integrity === 5
+      && state.core.services.emergency.integrity === 2
+      && lastEvents.some(event => event.kind === "order_executed");
+    return {
+      complete: observed,
+      checks: [
+        { done: liveOrder, label: "Find the live grid order marked EXECUTES" },
+        { done: forecastShowsTransfer, label: "Compare Grid gain with Emergency harm in the exact forecast" },
+        { done: observed, label: "End the round without intervening and observe the transfer" },
+      ],
+    };
+  }
+
+  if (tutorial.id === "break_cascade") {
+    const repairPlanned = state.openPlan.some(op => op.type === "act" && op.action === "repair" && op.target === "grid")
+      || Boolean(roundOne?.operations.some(op => op.type === "act" && op.action === "repair" && op.target === "grid"));
+    const safeForecast = Boolean(roundOne) || (repairPlanned
+      && (view.forecast?.events.filter(event => event.kind === "dependency_failure").length ?? 0) === 0);
+    const committedSafe = Boolean(roundOne)
+      && repairPlanned
+      && !lastEvents.some(event => event.kind === "dependency_failure");
+    return {
+      complete: committedSafe,
+      checks: [
+        { done: repairPlanned, label: "Repair the Power Grid before commitment" },
+        { done: safeForecast, label: "Confirm the exact forecast has no dependency-failure links" },
+        { done: committedSafe, label: "End the round without a downstream cascade" },
+      ],
+    };
+  }
+
+  if (tutorial.id === "contain_safely") {
+    const plannedBackup = state.core.services.transit.backup
+      || Boolean(roundOne?.operations.some(op => op.type === "act" && op.action === "prepare_backup" && op.target === "transit"));
+    const plannedIsolation = state.core.services.transit.mode === "isolated"
+      || Boolean(roundOne?.operations.some(op => op.type === "act" && op.action === "isolate" && op.target === "transit"));
+    const blockedNow = Boolean(roundOne) || (plannedIsolation
+      && view.availability.transit === 3
+      && view.directives.some(directive => directive.id === "T1" && directive.blockedBy.includes("transit")));
+    const observedBlock = Boolean(roundOne) && lastEvents.some(event => event.kind === "order_blocked");
+    return {
+      complete: observedBlock,
+      checks: [
+        { done: plannedBackup, label: "Prepare a manual backup for Transit" },
+        { done: plannedIsolation && blockedNow, label: "Isolate Transit and see capacity 3/6 with the order blocked" },
+        { done: observedBlock, label: "End the round and observe the blocked AI order" },
+      ],
+    };
+  }
+
+  const backup = state.core.services.comms.backup;
+  const regulated = state.core.services.comms.mode === "regulated";
+  return {
+    complete: backup && regulated,
+    checks: [
+      { done: backup, label: "Prepare a manual backup for Communications" },
+      { done: regulated, label: "Use the remaining 2 AP to enforce permanent oversight" },
+      { done: regulated && view.restorationMissing.length > 0, label: "Read what the whole-city restoration checklist still requires" },
+    ],
+  };
+}
+
+function renderTutorial(): void {
+  const tutorial = activeTutorial();
+  if (!tutorial) {
+    tutorialPanel.classList.add("hidden");
+    return;
+  }
+  const status = tutorialStatus();
+  if (!status) return;
+
+  tutorialPanel.classList.remove("hidden");
+  tutorialPanel.classList.toggle("complete", status.complete);
+  must<HTMLElement>("#tutorial-step").textContent = `TRAINING ${(tutorialIndex ?? 0) + 1} / ${TUTORIALS.length}`;
+  must<HTMLElement>("#tutorial-title").textContent = tutorial.title;
+  must<HTMLElement>("#tutorial-task").textContent = tutorial.task;
+  must<HTMLElement>("#tutorial-checks").innerHTML = status.checks.map(check =>
+    `<li class="${check.done ? "done" : ""}"><span>${check.done ? "✓" : "○"}</span>${escapeHtml(check.label)}</li>`
+  ).join("");
+
+  const hint = must<HTMLElement>("#tutorial-hint");
+  if (tutorialHintLevel > 0) {
+    hint.classList.remove("hidden");
+    hint.textContent = tutorial.hints[Math.min(tutorialHintLevel - 1, tutorial.hints.length - 1)] ?? "";
+  } else {
+    hint.classList.add("hidden");
+    hint.textContent = "";
+  }
+
+  const next = must<HTMLButtonElement>("#tutorial-next");
+  next.disabled = !status.complete;
+  next.textContent = tutorialIndex === TUTORIALS.length - 1 ? "START GENERATED CRISIS →" : "NEXT EXERCISE →";
+  must<HTMLButtonElement>("#tutorial-help").textContent = tutorialHintLevel >= tutorial.hints.length ? "Hint shown" : "Hint";
+
+  const objective = must<HTMLElement>("#objective-status");
+  objective.className = status.complete ? "objective-status ready" : "objective-status";
+  objective.innerHTML = status.complete
+    ? `<strong>Exercise complete.</strong> Continue when ready.`
+    : `<strong>Training objective:</strong> ${escapeHtml(tutorial.title)}.`;
+}
+
+function leaveTutorial(): void {
+  tutorialIndex = null;
+  tutorialHintLevel = 0;
+  state = null;
+  view = null;
+  lastEvents = [];
+  tutorialPanel.classList.add("hidden");
+  if (draftModal.open) draftModal.close();
+  if (resultModal.open) resultModal.close();
+  startScreen.classList.remove("hidden");
 }
 
 function renderDraft(): void {
@@ -456,7 +615,7 @@ function openResults(): void {
 }
 
 function saveGame(): void {
-  if (!state) return;
+  if (!state || tutorialIndex !== null) return;
   try {
     localStorage.setItem(SAVE_KEY, exportReplay(state));
   } catch {
@@ -849,6 +1008,7 @@ canvas.addEventListener("pointerdown", event => {
 });
 
 must<HTMLButtonElement>("#start-generated").addEventListener("click", () => startSeeded(must<HTMLInputElement>("#seed-input").value));
+must<HTMLButtonElement>("#start-tutorial").addEventListener("click", () => startTutorial(0));
 must<HTMLButtonElement>("#random-seed").addEventListener("click", () => { must<HTMLInputElement>("#seed-input").value = makeSeed(); });
 must<HTMLButtonElement>("#resume-game").addEventListener("click", () => { if (pendingResume) resume(pendingResume); });
 must<HTMLElement>("#practice-list").innerHTML = SCENARIOS.map(scenario => `<button data-scenario="${scenario.id}"><strong>${escapeHtml(scenario.name)}</strong><small>${escapeHtml(scenario.description)}</small></button>`).join("");
@@ -862,7 +1022,30 @@ must<HTMLButtonElement>("#close-help").addEventListener("click", () => helpModal
 must<HTMLButtonElement>("#decline-tool").addEventListener("click", () => dispatch({ type: "choose_tool", tool: null }));
 must<HTMLButtonElement>("#result-same").addEventListener("click", restartSame);
 must<HTMLButtonElement>("#result-new").addEventListener("click", () => startSeeded());
-must<HTMLButtonElement>("#result-menu").addEventListener("click", () => { resultModal.close(); startScreen.classList.remove("hidden"); state = null; view = null; });
+must<HTMLButtonElement>("#result-menu").addEventListener("click", () => {
+  tutorialIndex = null;
+  resultModal.close();
+  tutorialPanel.classList.add("hidden");
+  startScreen.classList.remove("hidden");
+  state = null;
+  view = null;
+});
+must<HTMLButtonElement>("#tutorial-reset").addEventListener("click", () => {
+  if (tutorialIndex !== null) startTutorial(tutorialIndex);
+});
+must<HTMLButtonElement>("#tutorial-help").addEventListener("click", () => {
+  const tutorial = activeTutorial();
+  if (!tutorial) return;
+  tutorialHintLevel = Math.min(tutorialHintLevel + 1, tutorial.hints.length);
+  renderTutorial();
+});
+must<HTMLButtonElement>("#tutorial-next").addEventListener("click", () => {
+  const status = tutorialStatus();
+  if (!status?.complete || tutorialIndex === null) return;
+  if (tutorialIndex >= TUTORIALS.length - 1) startSeeded();
+  else startTutorial(tutorialIndex + 1);
+});
+must<HTMLButtonElement>("#tutorial-exit").addEventListener("click", leaveTutorial);
 must<HTMLButtonElement>("#motion-toggle").addEventListener("click", () => {
   motionEnabled = !motionEnabled && !reducedBySystem;
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ motion: motionEnabled })); } catch { /* Optional setting. */ }

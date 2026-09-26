@@ -247,3 +247,93 @@ button:disabled { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .001ms !important; animation-duration: .001ms !important; }
 }
+
+
+/* Guided training */
+.tutorial-start-card {
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid rgba(107,217,189,.26);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(107,217,189,.07), rgba(10,28,36,.72));
+  cursor: pointer;
+}
+.tutorial-start-card:hover {
+  border-color: rgba(107,217,189,.48);
+  background: linear-gradient(145deg, rgba(107,217,189,.11), rgba(10,28,36,.78));
+}
+.tutorial-start-card span,
+.tutorial-start-card strong,
+.tutorial-start-card small,
+.tutorial-start-card b { display: block; }
+.tutorial-start-card span { color: var(--mint); font-size: 7px; letter-spacing: .13em; font-weight: 760; }
+.tutorial-start-card strong { margin-top: 4px; font-size: 14px; }
+.tutorial-start-card small { margin-top: 4px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+.tutorial-start-card b { margin-top: 9px; color: #bde8db; font-size: 8px; letter-spacing: .05em; }
+
+.tutorial-panel {
+  padding: 14px 17px 15px;
+  border-bottom: 1px solid rgba(107,217,189,.24);
+  background:
+    radial-gradient(circle at 100% 0, rgba(107,217,189,.07), transparent 42%),
+    rgba(8,25,32,.94);
+}
+.tutorial-panel.complete {
+  border-bottom-color: rgba(107,217,189,.54);
+  box-shadow: inset 3px 0 0 rgba(107,217,189,.52);
+}
+.tutorial-header { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.tutorial-header span { display: block; color: var(--mint); font-size: 7px; letter-spacing: .13em; }
+.tutorial-header strong { display: block; margin-top: 3px; font-size: 15px; letter-spacing: -.02em; }
+.tutorial-header .quiet-button { padding-top: 2px; }
+#tutorial-task { margin: 9px 0 10px; color: #aec6c7; font-size: 9px; line-height: 1.48; }
+.tutorial-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.tutorial-checks li {
+  display: grid;
+  grid-template-columns: 17px 1fr;
+  gap: 6px;
+  align-items: start;
+  color: #809ca0;
+  font-size: 8px;
+  line-height: 1.35;
+}
+.tutorial-checks li span {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: #759096;
+  font-size: 8px;
+}
+.tutorial-checks li.done { color: #c0dad4; }
+.tutorial-checks li.done span {
+  border-color: rgba(107,217,189,.48);
+  background: rgba(107,217,189,.09);
+  color: var(--mint);
+}
+.tutorial-hint {
+  margin-top: 9px;
+  padding: 8px 9px;
+  border-left: 2px solid var(--yellow);
+  background: rgba(237,214,123,.045);
+  color: #c8bd91;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.tutorial-actions {
+  display: grid;
+  grid-template-columns: 72px 72px 1fr;
+  gap: 6px;
+  margin-top: 10px;
+  min-height: 34px;
+}
+.tutorial-actions .secondary-button,
+.tutorial-actions .start-button {
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 8px;
+}
+.tutorial-actions .start-button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
