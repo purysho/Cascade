@@ -8,21 +8,25 @@ A disaster trailer where the scary line is not "the AI is malfunctioning" but **
 
 ## Hook (first 2–3 seconds)
 **THE NUMBERS ARE IMPROVING.**
-A half-second beat.
+
+Then:
+
 **THE CITY IS FAILING.**
 
-The line sits over the real Cascade city interface, initially darkened so the orange risk signals are the first things the viewer notices.
+The line sits over the real Cascade interface, darkened so the orange risk signals are the first things the viewer notices.
 
 ## Key moments
 - The live city with unchecked AI orders visibly radiating across services.
 - The exact consequence forecast beside the operations console.
 - The player-side verbs that define the game: **BACK UP · ISOLATE · RESTORE OVERSIGHT**.
-- A stable mint control ring replacing the orange autonomous-risk language.
+- A stable mint control language replacing the orange autonomous-risk language.
 
 ## Outro / punchline
 **CASCADE**
+
 Regain control before the city falls apart.
-purysho.github.io/Cascade/
+
+`purysho.github.io/Cascade/`
 
 ## User flow worth showing
 Entry → inspect a live unsafe order / exact forecast → take a control action → see the city respond.
@@ -32,15 +36,15 @@ Entry → inspect a live unsafe order / exact forecast → take a control action
 - Creative direction: municipal emergency broadcast meets prestige strategy-game trailer
 - Interpretation: restrained, dark, high-contrast, dramatic holds; real UI carries the credibility and typography only punctuates what is happening.
 
-## Format: landscape — 1920x1080
+## Format: landscape — 1920×1080
 ## Duration: 20 seconds
 
 ## Visual identity
-- Background: #061018
-- Accent / restored control: #6bd9bd
-- Risk / unsafe order: #ff815c
-- Text: #eaf4f2
-- Supporting cyan: #6cc4d1
+- Background: `#061018`
+- Accent / restored control: `#6bd9bd`
+- Risk / unsafe order: `#ff815c`
+- Text: `#eaf4f2`
+- Supporting cyan: `#6cc4d1`
 - Display font: system UI / heavy sans
 - Body font: system UI / sans
 - Strongest visual element: the live city Canvas with orange unsafe-order pulses and mint regulated-service rings.
@@ -69,7 +73,7 @@ Transition mood: dramatic crossfade → Scene 2
 ### Scene 2 — See the order — 4.0s
 Real live-city screenshot. Slow push toward the orange risk flow and forecast.
 Text: **SEE THE ORDER BEFORE IT FIRES.**
-Secondary: Exact consequence model. No hidden roll.
+Secondary: `Exact consequence model. No hidden roll.`
 Sequential/interaction: UI first, text enters after 0.4s.
 Audio intent: tension grows, small electronic tick as forecast language appears.
 Transition mood: clean wipe → Scene 3
@@ -77,8 +81,8 @@ Transition mood: clean wipe → Scene 3
 ### Scene 3 — Intervene — 4.2s
 Decision-console screenshot. Pan from city toward operations controls.
 Text: **BREAK THE CASCADE.**
-Secondary: 3 actions. 4 services. Every dependency matters.
-Sequential/interaction: operation labels appear as a short three-beat sequence.
+Secondary: `3 actions. 4 services. Every dependency matters.`
+Sequential/interaction: operation labels arrive as a short three-beat sequence.
 Audio intent: rhythmic but restrained.
 Transition mood: hard cut → Scene 4
 
@@ -90,12 +94,16 @@ Audio intent: three compact interface hits, then tension releases.
 Transition mood: slow crossfade → Scene 5
 
 ### Scene 5 — Title — 4.5s
-Full-frame city with hero treatment.
+Full-frame Cascade hero treatment.
 **CASCADE**
-Regain control before the city falls apart.
-purysho.github.io/Cascade/
-Small footer: Deterministic · seeded · playable in browser
+
+`Regain control before the city falls apart.`
+
+`purysho.github.io/Cascade/`
+
+Small footer: `Deterministic · seeded · playable in browser`
 Audio intent: final swell and clean decay.
 
 **Music mood for this video:** cinematic
+
 **Audio summary:** a low original electronic bed builds underneath real gameplay, punctuates the player's intervention, then resolves into a restrained title swell.
