@@ -6,7 +6,7 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 
 ## Current status
 
-**Stage 3 complete: Cascade now has a playable browser match plus four guided training exercises built on the same deterministic engine.**
+**Stage 4 complete: Cascade now has a playable browser match, guided training, and event-driven sound/consequence feedback built around the same deterministic engine.**
 
 - Four connected services, twelve rounds, three action points per round.
 - Seven operational actions, eight unsafe directives, and three authored practice crises.
@@ -18,10 +18,12 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 - Same-crisis replay and fresh-seed replay.
 - Reduced-motion support and an in-game rules reference.
 - Four guided exercises: read an unsafe optimisation, break a dependency cascade, contain a live order with backup + isolation, and install permanent oversight.
+- Optional procedural Web Audio cues for actions, containment, unchecked orders, cascade failures, delayed damage, and endings; no external audio assets or runtime network are required.
+- Round-resolution feedback is driven by committed engine events: a short control-room banner and map shock rings show where real consequences landed. Reduced-motion mode keeps the information without animated expansion.
 
-The engine stress sample still covers **1,000 reproducible seeds and 1,000 automated sessions**. The rendered browser smoke test now also exercises entry, seeded generation, the tool draft, a legal action, undo, round commitment, save, reload, and resume in Google Chrome. The latest measured CI viewport was **1440×757 at DPR 1**, with **zero SEVERE console entries** and a screenshot artifact recorded.
+The engine stress sample still covers **1,000 reproducible seeds and 1,000 automated sessions**. The rendered browser smoke test exercises entry, sound preference persistence, seeded generation, the tool draft, a legal action, undo, round commitment, event-driven consequence feedback, save/reload/resume, and all four training exercises in Google Chrome. CI retains separate campaign, tutorial, and Stage 4 feedback screenshots.
 
-Human difficulty, fun, 8–12 minute pacing, first-time tutorial comprehension, audio, and the final self-contained offline package remain unverified.
+Human difficulty, fun, 8–12 minute pacing, first-time tutorial comprehension, broader browser/Windows behaviour, and the final self-contained offline package remain unverified.
 
 ## Run Cascade
 
@@ -68,10 +70,9 @@ The current source builds an offline-capable static browser game in `dist-web/`;
 
 The next milestones are:
 
-1. Stage 4 — sound cues, final polish, and any additional original visual assets justified by playtesting.
-2. Stage 5 — broader browser/Windows checks and human playtests for comprehension, pacing, strategy variety, and replay interest.
-3. Stage 6 — self-contained `Cascade-Play.html`, extracted-package verification, credits/disclosures, and demo materials.
+1. Stage 5 — broader browser/Windows checks and human playtests for comprehension, pacing, strategy variety, and replay interest.
+2. Stage 6 — self-contained `Cascade-Play.html`, extracted-package verification, credits/disclosures, and demo materials.
 
 Repository work is authorised. Website deployment and competition submission have not been requested.
 
-Design and code assistance: OpenAI ChatGPT/Codex. The current city visuals are generated at runtime from original code; no external art pack or remote asset is required.
+Design and code assistance: OpenAI ChatGPT/Codex. The current city visuals and procedural sound cues are generated at runtime from original code; no external art/audio pack or remote asset is required.
