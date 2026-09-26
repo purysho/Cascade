@@ -146,9 +146,15 @@ try {
   const severe = Array.isArray(logs) ? logs.filter(entry => entry.level === "SEVERE") : [];
   if (severe.length) fail("Browser console contained SEVERE entries: " + JSON.stringify(severe));
 
+  const viewport = await webdriver(`/session/${session}/execute/sync`, "POST", {
+    script: "return { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio };",
+    args: [],
+  });
+  if (viewport.width < 1200 || viewport.height < 700) fail("Browser viewport is smaller than the supported desktop smoke target.");
+
   console.log(JSON.stringify({
     browser: "Google Chrome via ChromeDriver",
-    viewport: "1440x900",
+    viewport,
     flow: ["entry", "seeded run", "tool draft", "legal action", "undo", "commit", "save", "reload", "resume"],
     roundAfterResume: await text(session, "#round-value"),
     screenshot: "verification/browser-smoke.png",
