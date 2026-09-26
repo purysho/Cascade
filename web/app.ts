@@ -68,6 +68,7 @@ let tutorialIndex: number | null = null;
 let tutorialHintLevel = 0;
 let feedbackPulses: FeedbackPulse[] = [];
 let feedbackTimer = 0;
+let helpReturnFocus: HTMLElement | null = null;
 
 function must<T extends Element>(selector: string): T {
   const element = document.querySelector(selector);
@@ -838,6 +839,11 @@ function toggleForecast(): void {
   must<HTMLButtonElement>("#forecast-toggle").setAttribute("aria-expanded", String(forecastPanel.classList.contains("open")));
 }
 
+function openHelp(invoker: HTMLElement): void {
+  helpReturnFocus = invoker;
+  helpModal.showModal();
+}
+
 function drawCity(time: number): void {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1211,9 +1217,15 @@ must<HTMLElement>("#practice-list").querySelectorAll<HTMLButtonElement>("[data-s
 must<HTMLButtonElement>("#undo").addEventListener("click", () => dispatch({ type: "undo" }));
 must<HTMLButtonElement>("#commit").addEventListener("click", () => dispatch({ type: "commit_round" }));
 must<HTMLButtonElement>("#forecast-toggle").addEventListener("click", toggleForecast);
-must<HTMLButtonElement>("#help").addEventListener("click", () => helpModal.showModal());
-must<HTMLButtonElement>("#start-help").addEventListener("click", () => helpModal.showModal());
+const helpButton = must<HTMLButtonElement>("#help");
+const startHelpButton = must<HTMLButtonElement>("#start-help");
+helpButton.addEventListener("click", () => openHelp(helpButton));
+startHelpButton.addEventListener("click", () => openHelp(startHelpButton));
 must<HTMLButtonElement>("#close-help").addEventListener("click", () => helpModal.close());
+helpModal.addEventListener("close", () => {
+  helpReturnFocus?.focus();
+  helpReturnFocus = null;
+});
 must<HTMLButtonElement>("#decline-tool").addEventListener("click", () => dispatch({ type: "choose_tool", tool: null }));
 must<HTMLButtonElement>("#result-same").addEventListener("click", restartSame);
 must<HTMLButtonElement>("#result-new").addEventListener("click", () => startSeeded());
