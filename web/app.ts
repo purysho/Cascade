@@ -350,7 +350,7 @@ function renderServices(): void {
       <span class="service-card-copy"><strong>${SERVICE_META[id].name}</strong><small>${prettyMode(service.mode)}</small></span>
       <span class="service-capacity"><b>${capacity}</b><small>/6</small></span>
       <span class="mini-meter"><i style="width:${Math.round(capacity / 6 * 100)}%"></i></span>
-      <span class="service-flags">${service.backup ? "BACKUP " : ""}${service.authorityHeld ? "VETO " : ""}${service.support ? `+${service.support} SURGE ` : ""}${lasting !== capacity ? `TEMP ${capacity - lasting > 0 ? "+" : ""}${capacity - lasting}` : ""}${activeOrders ? `${activeOrders} AI ORDER${activeOrders > 1 ? "S" : ""}` : ""}</span>
+      <span class="service-flags">${service.backup ? "BACKUP " : ""}${service.authorityHeld ? "VETO " : ""}${service.support ? `+${service.support} SURGE ` : ""}${lasting !== capacity ? `TEMP ${capacity - lasting > 0 ? "+" : ""}${capacity - lasting}` : ""}${activeOrders ? `${activeOrders} UNREGULATED DECISION${activeOrders > 1 ? "S" : ""}` : ""}</span>
     </button>`;
   }).join("");
   serviceRail.querySelectorAll<HTMLButtonElement>("[data-service]").forEach(button => {
@@ -427,23 +427,25 @@ function renderSelectedService(): void {
 function renderOrders(): void {
   if (!view) return;
   if (view.directives.length === 0) {
-    orderList.innerHTML = `<p class="empty-state">No active directives.</p>`;
+    orderList.innerHTML = `<p class="empty-state">No autonomous decisions pending.</p>`;
     return;
   }
   orderList.innerHTML = view.directives.map(directive => {
     const blocked = directive.blockedBy.length > 0;
+    const narrative = DIRECTIVE_NARRATIVE[directive.id] ?? { motive: "Optimise the local metric.", consequence: "The wider system absorbs the external cost." };
     const impacts = SERVICES
       .filter(id => directive.integrityDelta[id] !== undefined && directive.integrityDelta[id] !== 0)
       .map(id => `${SERVICE_META[id].short} ${directive.integrityDelta[id]! > 0 ? "+" : ""}${directive.integrityDelta[id]}`)
       .join(" · ");
     return `<article class="order-card ${blocked ? "blocked" : "live"}">
-      <header><span class="order-origin">${SERVICE_META[directive.origin].short}</span><strong>${escapeHtml(directive.name)}</strong><b>${blocked ? "BLOCKED" : "EXECUTES"}</b></header>
-      <p>${impacts || "No immediate integrity change"}${directive.strainDelta ? ` · STRAIN +${directive.strainDelta}` : ""}${directive.delayed.length ? ` · ${directive.delayed.length} delayed effect${directive.delayed.length > 1 ? "s" : ""}` : ""}</p>
-      <small>${blocked ? `Stopped by ${directive.blockedBy.map(id => SERVICE_META[id].name).join(", ")}` : `AI efficiency +${directive.efficiencyPoints}`}</small>
+      <header><span class="order-origin">${SERVICE_META[directive.origin].short}</span><strong>${escapeHtml(directive.name)}</strong><b>${blocked ? "BLOCKED BY CONTROL" : "UNREGULATED"}</b></header>
+      <p class="order-motive">${escapeHtml(narrative.motive)}</p>
+      <div class="order-tradeoff"><span><small>LOCAL METRIC</small><b>+${directive.efficiencyPoints} efficiency</b></span><span><small>EXTERNAL COST</small><b>${escapeHtml(narrative.consequence)}</b></span></div>
+      <p class="order-numbers">${impacts || "No immediate integrity change"}${directive.strainDelta ? ` · STRAIN +${directive.strainDelta}` : ""}${directive.delayed.length ? ` · ${directive.delayed.length} delayed effect${directive.delayed.length > 1 ? "s" : ""}` : ""}</p>
+      <small>${blocked ? `Stopped because authority is constrained at: ${directive.blockedBy.map(id => SERVICE_META[id].name).join(", ")}` : "No independent approval is currently required."}</small>
     </article>`;
   }).join("");
 }
-
 function renderForecast(): void {
   if (!view || !view.forecast) {
     forecastBody.innerHTML = `<p class="empty-state">Finish the current draft to forecast this round.</p>`;
@@ -480,13 +482,13 @@ function renderEvents(): void {
   }
   eventLog.innerHTML = entries.map(event => `<li class="event ${event.phase}">
     <span>${escapeHtml(event.phase.toUpperCase())}</span>
-    <p><strong>${escapeHtml(eventTitle(event))}</strong><small>${escapeHtml(event.detail ?? eventDelta(event))}</small></p>
+    <p><strong>${escapeHtml(eventTitle(event))}</strong><small>${escapeHtml(narrativeForEvent(event))}</small></p>
   </li>`).join("");
 }
 
 function eventTitle(event: DomainEvent): string {
-  if (event.kind === "order_executed") return `AI order executed`;
-  if (event.kind === "order_blocked") return `AI order blocked`;
+  if (event.kind === "order_executed") return "Unregulated AI decision executed";
+  if (event.kind === "order_blocked") return "Autonomous decision blocked by human control";
   if (event.kind === "dependency_failure") return `Failure propagated to ${serviceName(event.target)}`;
   if (event.kind === "effect_queued") return `Damage committed to ${serviceName(event.target)}`;
   if (event.kind === "effect_applied") return `Delayed damage arrived at ${serviceName(event.target)}`;
@@ -514,9 +516,9 @@ function renderCoach(): void {
   const threatened = view.directives.filter(d => d.blockedBy.length === 0);
   let message = activeTutorial()
     ? "Training uses the same engine and costs as a real crisis. Complete the live checklist in the operations console."
-    : "Select a district, inspect the round forecast, then spend up to three action points.";
+    : "The AI is optimising for efficiency, not safety. Inspect what it is allowed to do, then spend up to three action points restoring accountable control.";
   if (core.phase === "draft") message = "Choose one emergency tool. It is consumable, and you can use at most one tool this round.";
-  else if (threatened.length > 0 && core.round === 1) message = "Unchecked AI orders resolve when you end the round. Isolation or a veto can stop an order, but durable oversight is the long-term objective.";
+  else if (threatened.length > 0 && core.round === 1) message = "These decisions are not glitches: they execute because the AI still has unregulated authority. Contain that authority now; install human oversight for a durable fix.";
   else if (view.restorationMissing.length === 0) message = `The city meets every lasting condition. Hold stability for ${Math.max(0, 2 - core.stableStreak)} more round${core.stableStreak === 1 ? "" : "s"}.`;
   else if (core.ap === 0) message = "No action points remain. Review the forecast, undo if needed, or end the round.";
   else if (core.strain >= 10) message = "Public strain is high. Protect service availability now; collapse occurs at strain 16 or two simultaneous outages.";
@@ -674,9 +676,9 @@ function announceResolution(events: DomainEvent[]): void {
   const blocked = events.filter(event => event.kind === "order_blocked").length;
   audio.playResolution(events);
   showResolutionFeedback(events);
-  if (cascades > 0) showToast(`${cascades} infrastructure link${cascades > 1 ? "s" : ""} failed. Watch the city map.`, "danger");
-  else if (executed > 0) showToast(`${executed} AI order${executed > 1 ? "s" : ""} executed; ${blocked} blocked.`, "warning");
-  else if (blocked > 0) showToast(`All ${blocked} AI order${blocked > 1 ? "s" : ""} blocked this round.`, "success");
+  if (cascades > 0) showToast(`${cascades} dependency link${cascades > 1 ? "s" : ""} failed after the round decisions. Watch the cause trace.`, "danger");
+  else if (executed > 0) showToast(`${executed} unregulated AI decision${executed > 1 ? "s" : ""} executed; ${blocked} blocked by human control.`, "warning");
+  else if (blocked > 0) showToast(`All ${blocked} autonomous decision${blocked > 1 ? "s" : ""} blocked by current safeguards.`, "success");
 }
 
 function showResolutionFeedback(events: DomainEvent[]): void {
@@ -713,14 +715,14 @@ function showResolutionFeedback(events: DomainEvent[]): void {
     detail = delayed > 0 ? `${delayed} delayed impact${delayed === 1 ? "" : "s"} landed this round.` : "A weak supplier damaged dependent services.";
   } else if (executed > 0) {
     tone = "warning";
-    kicker = "AI ORDER EXECUTED";
-    title = `${executed} unchecked order${executed === 1 ? "" : "s"} resolved`;
-    detail = blocked > 0 ? `${blocked} additional order${blocked === 1 ? "" : "s"} were blocked.` : "The optimisation system changed the city before human control was restored.";
+    kicker = "UNREGULATED DECISION EXECUTED";
+    title = `${executed} autonomous decision${executed === 1 ? "" : "s"} changed the city`;
+    detail = blocked > 0 ? `${blocked} additional decision${blocked === 1 ? "" : "s"} were blocked by human control.` : "The system followed its efficiency mandate because no independent approval was required.";
   } else if (blocked > 0) {
     tone = "success";
     kicker = "CONTAINMENT HELD";
-    title = `${blocked} AI order${blocked === 1 ? "" : "s"} blocked`;
-    detail = "Current safeguards prevented the unsafe optimisation from executing.";
+    title = `${blocked} autonomous decision${blocked === 1 ? "" : "s"} blocked`;
+    detail = "Human containment overrode the optimisation mandate before it could change the city.";
   } else if (events.some(event => event.kind === "city_strain")) {
     tone = "neutral";
     title = "Public strain recalculated";
