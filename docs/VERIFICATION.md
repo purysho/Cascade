@@ -160,3 +160,79 @@ The first Stage 4 Chrome attempt failed because the smoke tried to click the in-
 ### Stage 4 conclusion
 
 The Stage 4 implementation meets its scoped engineering goal: optional offline sound and stronger consequence feedback are derived from real engine events and remain outside gameplay state. The next evidence gap is Stage 5 human and broader-platform testing, not additional mechanics.
+
+
+## Stage 5 — broader validation and persistence hardening
+
+Date: 26 September 2026. Verification run: GitHub Actions `36218522113` on the Stage 5/6 branch.
+
+| Area | Status | Evidence | Remaining limit |
+| --- | --- | --- | --- |
+| Core engine/regression suite | PASS | Strict TypeScript, 33 tests, 1,000 deterministic generated crises with verified legal recovery certificates, and 1,000 replay-checked sessions all passed unchanged. | Finite deterministic sample; not exhaustive. |
+| Complete browser win | PASS | Chrome drove the authored Overdrive recovery witness through the rendered UI to `CONTROL RESTORED` on round 7. | Uses a privileged verified route; not evidence of human difficulty. |
+| Same-crisis replay | PASS | Result-screen replay reset Overdrive to round 1 with the same authored identity. | One rendered replay route exercised. |
+| Real browser loss | PASS | No-intervention replay reached `CITY OVERWHELMED` on round 3 with strain 18 and visible propagated failures. | Does not cover every terminal presentation variant. |
+| Keyboard help / focus return | PASS | How to Play opened via keyboard, closed via keyboard, and focus returned to the invoking start-screen control. | Full keyboard traversal of every control was not exhaustively enumerated. |
+| Required desktop sizes | PASS | Chrome rendered at 1366×768-class and 1920×1080-class viewports; screenshots retained. | Mobile-first behavior is outside V1 scope. |
+| 200% zoom | PASS for reachability | At CSS-equivalent 200% zoom the primary End Round control remained reachable after scrolling; screenshot retained. | Horizontal scrolling is required because the product is intentionally desktop-first/min-width constrained. |
+| Reduced motion | PASS | Presentation control switches to Motion: Reduced and consequence feedback remains informational. | Subjective accessibility quality still benefits from human review. |
+| Corrupted save | PASS | Malformed JSON was rejected on reload and was not offered as resumable state. | Browser-specific storage corruption beyond this fixture is not exhaustive. |
+| Storage write failure | PASS | Simulated `Storage.setItem` failure produced the warning and the in-memory run remained interactive. | Real browser quota/private-mode combinations vary. |
+| Newer-tab save conflict | PASS | A foreign newer save token prevented the stale tab from overwriting replay data and displayed an explicit autosave-paused warning. | Resolution is intentionally reload-to-newer-copy rather than live multi-tab merging. |
+| Windows engine/build | PASS | Windows Server 2025 ran `npm run check`, generated the release package, extracted it and verified hashes/contents. | Hosted Windows runner, not a consumer PC. |
+| Windows Microsoft Edge | PASS | Direct Edge WebDriver smoke: entry → mute → authored run → action → undo → commit. Screenshot inspected. | Short smoke, not full campaign. |
+| Windows Firefox | PASS | Direct Firefox/GeckoDriver smoke: same cross-browser path. Screenshot inspected. | Short smoke, not full campaign. |
+| Human first-time playtest | NOT TESTED | No person was available inside the autonomous build environment. Protocol exists in `docs/PLAYTEST_PROTOCOL.md`. | Required before claiming human comprehension, fun, duration or replay desire. |
+
+### Stage 5 rendered inspection
+
+Inspected screenshots:
+
+- `stage5-win.png`: result modal is legible, decisive events are readable, and replay/new-run controls remain clear.
+- `stage5-loss.png`: collapse reason, strain, AI score and propagated failure trace are readable.
+- `stage5-1920.png`: city, forecast, service rail, operations console and cause trace retain hierarchy at the large desktop target.
+- `stage5-zoom-200.png`: desktop layout becomes horizontally scrollable at 200%, but primary controls remain reachable.
+- Windows Edge and Firefox screenshots preserve the same live-city/control-room composition and event feedback.
+
+No Stage 5 finding required a game-rule or balance change. The only new product defect fixed was stale-tab save overwrite risk; the browser now pauses autosave and warns instead of overwriting a newer save.
+
+## Stage 6 — self-contained package and release materials
+
+Date: 26 September 2026. Same verification run: `36218522113`.
+
+| Area | Status | Evidence | Remaining limit |
+| --- | --- | --- | --- |
+| Self-contained playable | PASS | `npm run package` generated one `Cascade-Play.html` with CSS, 16 compiled JavaScript modules and 4 JSON content modules embedded. | Import-map/data-module support assumes a current desktop browser. |
+| Runtime network independence | PASS | Static verifier found no remote `src`/`href` resources; build manifest declares no backend/live AI/network requirement. Extracted file launched directly via `file://`. | Browsers may still perform their own unrelated background networking unless configured otherwise. |
+| Release ZIP | PASS | Source-inclusive `Cascade-v0.6.0.zip` generated with 67 entries; ZIP CRCs and required paths verified after clean extraction. | Store-mode ZIP prioritises simplicity/determinism over compression ratio. |
+| Manifest integrity | PASS | Manifest contains version, source commit, schema/rules/content/generator IDs, content hash, playable byte size and SHA-256. Extracted playable hash/size matched. | Final main-branch rebuild will have its own source commit/hash and is authoritative. |
+| Windows packaging | PASS | Windows Server 2025 independently generated and verified the package. | Browser `file://` release smoke is automated on Linux Chrome. |
+| Extracted file browser launch | PASS | Chrome opened the extracted HTML directly from `file://`, completed action → undo → commit, reloaded and resumed the saved incident, then loaded the embedded tutorial. Zero SEVERE console entries. | One direct `file://` browser automated; Edge/Firefox were verified on the HTTP production build. |
+| Credits / disclosure / instructions | PASS | ZIP contains README-FIRST, CREDITS, AI-DISCLOSURE and VERIFICATION text files. | Competition-specific wording should still be reviewed against the final submission form. |
+| Source snapshot | PASS | ZIP contains source code, tests, tools, design data, docs, package metadata and workflow definition. | Git history itself is not embedded. |
+| Demo material | PASS as script | `docs/DEMO_SCRIPT.md` provides a 3–5-minute real-gameplay capture plan. | Actual video capture requires a human recorder and is not fabricated by CI. |
+| Human playtest material | PASS as protocol | `docs/PLAYTEST_PROTOCOL.md` provides observer rules, questions and a session form. | Actual observations remain uncollected. |
+| Deployment / competition submission | NOT PERFORMED | Deliberately outside the release build. | Requires explicit user authorisation and eligibility/registration verification. |
+
+### Verified branch artifact
+
+The successful Stage 6 branch artifact reported:
+
+- version: `0.6.0`;
+- source commit: `74306721042a64dc2dcc502b602fcef0ea38d712`;
+- rules version: `0.2.0`;
+- content version: `0.2.0`;
+- generator version: `seeded-crisis-1`;
+- content hash: `bc4ecfbe7cdbffdf`;
+- embedded JavaScript modules: 16;
+- embedded JSON modules: 4;
+- `Cascade-Play.html`: 204,271 bytes;
+- playable SHA-256: `b5c8b5c19026305bf2b63bd23ef205ffdfbe16e8ea7fb38fdf26742b42c6a4e4`;
+- ZIP entries: 67;
+- ZIP size: 603,005 bytes.
+
+This branch artifact is verification evidence, not the forever-canonical binary. Documentation and merge commits change the embedded source-commit metadata, so the manifest shipped with the final main/release artifact is the authoritative identifier.
+
+### Stage 6 conclusion
+
+The engineering/package stages are complete. The software has a checked self-contained offline delivery and cross-platform/browser evidence. The remaining gaps are human observation and any competition/deployment actions, not another software-build stage.

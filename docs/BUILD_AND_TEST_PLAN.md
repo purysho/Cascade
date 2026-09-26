@@ -1,6 +1,6 @@
 # Cascade — staged build and test plan
 
-Stages 0 and 1 are complete. The user authorised implementation and seeded replayability after the design milestone. Stage 2 is next; later stages turn the engine into a complete playable game.
+Stages 0–6 engineering implementation is complete in v0.6.0. Human playtest observations remain a separate evidence task because they cannot be produced by automation.
 
 Each stage should leave real files, a working checkpoint, an updated handoff, and honest evidence. Do not treat a plan or generated mockup as an implemented feature. Resume from the last committed state after an interruption.
 
@@ -45,6 +45,8 @@ Exit evidence: real screenshots of entry, planning, cascade, regulated recovery,
 Preserve interaction clarity. Visual effects cannot obscure numbers, capture input unexpectedly, or alter the simulation.
 
 ## Stage 5 — balance, stress, and bug fixing
+
+**Engineering status: complete.** Linux Chrome, Windows Edge, Windows Firefox, Windows engine/package, full win/replay/loss, persistence failure/conflict, required desktop sizes, keyboard focus, reduced motion and 200% zoom reachability are verified. Human observations remain uncollected and are explicitly not replaced by automation.
 
 ### Rules and state
 
@@ -91,6 +93,8 @@ Human enjoyment, replay interest, and learning remain untested until observed. A
 Fix concrete failures and rerun affected checks. Broaden verification only when a change introduces a new risk or a required gate is still unmet.
 
 ## Stage 6 — package and competition materials
+
+**Packaging status: complete.** v0.6.0 produces a self-contained HTML and source-inclusive ZIP, verifies extraction/hashes on Linux and Windows, and launches the extracted file directly through `file://` in Chrome. Competition submission is still separate and unauthorised.
 
 Bundle the checked game, instructions, source, credits, AI-tool disclosure, and verification record. Include the scenario/content versions and source commit in a build manifest.
 
