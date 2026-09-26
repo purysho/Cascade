@@ -185,6 +185,7 @@ npm run release
 | [Experience and art](docs/EXPERIENCE_AND_ART.md) | Tutorial, graphics and accessibility |
 | [Verification](docs/VERIFICATION.md) | Actual test evidence and explicit limitations |
 | [Playtest protocol](docs/PLAYTEST_PROTOCOL.md) | Human observation procedure |
+| [Playtest results](docs/PLAYTEST_RESULTS.md) | Canonical human-evidence log and finding status |
 | [Release](docs/RELEASE.md) | Packaging and verification flow |
 | [Demo script](docs/DEMO_SCRIPT.md) | 3–5 minute hackathon demonstration |
 | [Handoff](HANDOFF.md) | Exact continuation state |
