@@ -8,7 +8,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,6 +19,9 @@ jobs:
       - run: npm run check
       - run: npm run browser:smoke
       - run: npm run stage5:smoke
+      - run: npm run release
+        env:
+          CASCADE_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -32,11 +35,26 @@ jobs:
             verification/stage5-conflict.png
             verification/stage5-zoom-200.png
             verification/stage5-1920.png
+            verification/release-file-smoke.png
           if-no-files-found: ignore
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cascade-release
+          path: |
+            release/Cascade-Play.html
+            release/Cascade-v0.6.0.zip
+            release/BUILD-MANIFEST.json
+            release/README-FIRST.txt
+            release/CREDITS.txt
+            release/AI-DISCLOSURE.txt
+            release/VERIFICATION.txt
+            release/release-report.json
+          if-no-files-found: error
 
   windows-engine:
     runs-on: windows-2025
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,6 +63,10 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run check
+      - run: npm run package
+        env:
+          CASCADE_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      - run: npm run release:verify
 
   windows-browser:
     runs-on: windows-2025
