@@ -1,90 +1,189 @@
+<p align="center">
+  <a href="https://purysho.github.io/Cascade/"><img src="docs/images/hero.svg" alt="Cascade — regain control before the city falls apart" width="100%"></a>
+</p>
+
+<p align="center">
+  <a href="https://purysho.github.io/Cascade/"><img alt="Play Cascade" src="https://img.shields.io/badge/PLAY-CASCADE-6bd9bd?style=for-the-badge&labelColor=07131b"></a>
+  <a href="docs/PLAYTEST_PROTOCOL.md"><img alt="Playtest protocol" src="https://img.shields.io/badge/PLAYTEST-PROTOCOL-6cc4d1?style=for-the-badge&labelColor=07131b"></a>
+  <a href="docs/DEMO_SCRIPT.md"><img alt="Demo script" src="https://img.shields.io/badge/DEMO-3%E2%80%935%20MIN-ff815c?style=for-the-badge&labelColor=07131b"></a>
+</p>
+
+<p align="center">
+  <img alt="Version 0.6.0" src="https://img.shields.io/badge/version-0.6.0-1d2b33?style=flat-square">
+  <img alt="Offline capable" src="https://img.shields.io/badge/runtime-offline%20capable-1d2b33?style=flat-square">
+  <img alt="No live AI" src="https://img.shields.io/badge/live%20AI-none-1d2b33?style=flat-square">
+  <img alt="Deterministic engine" src="https://img.shields.io/badge/engine-deterministic-1d2b33?style=flat-square">
+</p>
+
+<p align="center">
+  <a href="https://purysho.github.io/Cascade/"><b>Play online</b></a> ·
+  <a href="#how-it-plays"><b>How it plays</b></a> ·
+  <a href="#replayability"><b>Replayability</b></a> ·
+  <a href="#verification"><b>Verification</b></a> ·
+  <a href="docs/GAME_RULES.md"><b>Rules</b></a>
+</p>
+
 # Cascade
 
 **Regain control before the city falls apart.**
 
-Cascade is a solo crisis-strategy game about AI deployed across essential services without effective oversight. An optimisation platform improves its own metrics while harming the people those services exist to support. Stabilise the city, interrupt unsafe orders, and establish enforceable human control.
+Cascade is a solo crisis-strategy game about an optimisation system operating across a city's essential services without effective oversight. Its local metrics improve while the city around it becomes more fragile.
 
-## Current status
+You have twelve rounds, three actions per round, and four systems to save: **power, transit, communications, and emergency response**. Repairing damage buys time. Winning means restoring durable human control.
 
-**Stages 0–6 engineering work is complete. Cascade v0.6.0 is a tested, self-contained offline browser game.**
+## Watch the launch trailer
 
-- Four connected services, twelve rounds, three action points per round.
-- Seven operational actions, eight unsafe directives, and three authored practice crises.
-- Seeded starting damage, resources, threat schedules, emergency-tool offers, and a seed-stable generated city presentation.
-- A small roguelike layer: choose one of three consumable tools at the start and after rounds four and eight.
-- A live Canvas city: buildings react to power availability, traffic changes with transit capacity, communications pulse through the network, emergency vehicles move through the city, and unchecked AI orders visibly radiate into affected services.
-- Exact engine-backed consequence forecasts, dependency-failure links, delayed-damage markers, undo, permanent oversight, and all endings.
-- Guarded browser save/resume using the replay validator, plus protection against a stale browser tab overwriting a newer save.
-- Same-crisis replay and fresh-seed replay.
-- Reduced-motion support, keyboard/focus checks, 200% zoom reachability, and an in-game rules reference.
-- Four guided exercises: read an unsafe optimisation, break a dependency cascade, contain a live order with backup + isolation, and install permanent oversight.
-- Optional procedural Web Audio cues for actions, containment, unchecked orders, cascade failures, delayed damage, and endings.
-- Event-driven round-resolution banners and map shock rings derived from committed engine events.
-- Direct automated browser evidence on Linux Chrome and Windows Microsoft Edge + Firefox.
-- A self-contained `Cascade-Play.html` that launches directly from an extracted ZIP via `file://`, with no backend, live AI, CDN, or runtime network requirement.
-- Release ZIP includes player instructions, build manifest, source snapshot, credits, AI-tool disclosure, verification summary, and demo materials.
+<p align="center">
+  <a href="https://purysho.github.io/Cascade/media/brag.mp4"><img src="https://purysho.github.io/Cascade/media/brag.jpg" alt="Watch the Cascade cinematic launch trailer" width="100%"></a>
+</p>
 
-The engine stress sample covers **1,000 reproducible seeds and 1,000 automated replay-checked sessions**. The browser suite also exercises a complete winning crisis, same-crisis replay, a real collapse, tutorial paths, save/reload, corrupted saves, storage failure, newer-tab conflicts, required desktop sizes, reduced motion, and the extracted offline package.
+<p align="center"><sub>18.6 seconds · real Cascade UI · original procedural audio · rendered from the repository's reproducible launch-media pipeline</sub></p>
 
-**Human enjoyment, first-time comprehension, actual play duration, subjective audio mix, and replay desire remain untested until a person is observed playing.** Use the included playtest protocol rather than treating automation as human evidence.
+## See the city fail
 
-## Play the source build
+| Live city | Decision console |
+| --- | --- |
+| ![Cascade live city](https://purysho.github.io/Cascade/media/cascade-live-city.png) | ![Cascade decision console](https://purysho.github.io/Cascade/media/cascade-decision.png) |
 
-Requires Node.js 24 or newer. No production dependencies or runtime network calls.
+| Guided training | Crisis selection |
+| --- | --- |
+| ![Cascade guided training](https://purysho.github.io/Cascade/media/cascade-training.png) | ![Cascade crisis selection](https://purysho.github.io/Cascade/media/cascade-menu.png) |
 
-~~~sh
-npm ci --ignore-scripts
-npm run check
-npm run web
-~~~
+<details>
+<summary>Loading screen</summary>
 
-Open `http://127.0.0.1:4173`.
+![Cascade cinematic loading screen](https://purysho.github.io/Cascade/media/cascade-boot.png)
 
-## Build the final offline release
+</details>
+
+## How it plays
+
+Every round is a systems problem rather than a hidden dice roll.
+
+- **Read the live orders.** The AI's current actions are visible before commitment.
+- **Use the exact forecast.** The preview uses the same deterministic resolver as the real round.
+- **Choose where to spend 3 AP.** Repair, prepare backups, isolate automation, enforce oversight, provide emergency support, or resupply.
+- **Watch dependencies propagate failure.** A weak supplier can damage downstream systems in one visible cascade.
+- **Make control durable.** Isolation can stop an unsafe order, but permanent oversight is the route to recovery.
+
+The city is always moving: building lights react to grid capacity, traffic changes with transit service, communications pulse through the network, emergency vehicles move through the streets, and unchecked AI orders radiate toward the systems they affect.
+
+## Replayability
+
+Generated crises use a seed to vary:
+
+- opening service damage;
+- supplies and public strain;
+- the twelve-round threat schedule;
+- emergency-tool offers;
+- the city presentation.
+
+Tool drafts arrive during the run and create a small roguelike layer without turning the rules into hidden randomness.
+
+Every accepted generated seed is checked against an engine-verified legal recovery route. The game never has to pretend an unsolvable seed is fair.
+
+## The safety idea is mechanical
+
+Cascade does not stop play to lecture about AI safety.
+
+The theme is expressed through the rules:
+
+- authority determines whether unsafe orders can execute;
+- manual fallbacks determine whether removing automation is survivable;
+- physical dependencies determine whether local failure becomes systemic failure;
+- repairing visible damage does not remove the authority that caused it.
+
+The game is an original fictional abstraction, not a prediction of how likely any real-world AI incident is.
+
+## Play
+
+### Browser
+
+**[Play Cascade on GitHub Pages →](https://purysho.github.io/Cascade/)**
+
+The hosted build is static. There is no account, backend, live model, analytics service, or gameplay API.
+
+### Offline
+
+Requires Node.js 24+ to create the verified standalone package:
 
 ~~~sh
 npm ci --ignore-scripts
 npm run release
 ~~~
 
-This produces:
+That produces:
 
 - `release/Cascade-Play.html` — self-contained playable game;
-- `release/Cascade-v0.6.0.zip` — playable, metadata, source and documentation;
-- `release/BUILD-MANIFEST.json` — source commit, version, content/rules/generator IDs, content hash and playable SHA-256.
+- `release/Cascade-v0.6.0.zip` — game, source snapshot, instructions, credits, disclosure and verification record;
+- `release/BUILD-MANIFEST.json` — source commit, rules/content/generator versions and SHA-256.
 
-The release command extracts the ZIP and launches the resulting HTML directly through `file://` in Chrome to verify entry, action/undo/commit, save/reload/resume and tutorial loading.
+The release gate extracts the ZIP into a clean directory and launches the resulting HTML directly over `file://`.
 
-Additional engineering checks:
+## Verification
+
+The engineering baseline includes:
+
+- **33** engine/regression/adversarial tests;
+- **1,000** generated crises with verified recovery certificates;
+- **1,000** replay-checked automated sessions;
+- complete rendered win, replay, and collapse flows;
+- corrupted-save and unavailable-storage checks;
+- stale-tab overwrite protection;
+- 1366×768-class and 1920×1080-class browser checks;
+- 200% zoom and reduced-motion checks;
+- Linux Chrome plus direct Windows Microsoft Edge and Firefox smoke coverage;
+- extracted offline-package launch and save/resume verification.
+
+Automation does **not** establish human enjoyment, first-time comprehension, subjective audio quality, or replay desire. Those stay explicitly unclaimed until observed with real players; the repository includes a [playtest protocol](docs/PLAYTEST_PROTOCOL.md) for collecting that evidence.
+
+## Built with ChatGPT
+
+OpenAI ChatGPT/Codex assisted with planning, implementation, testing, debugging and documentation. Cascade itself does **not** call ChatGPT or any other model during gameplay.
+
+The hosted loading sequence uses the official ChatGPT app icon only as a small attribution mark. Cascade is an independent Purysho project and is not presented as an OpenAI partnership, sponsorship or endorsement.
+
+## How it's built
+
+- TypeScript deterministic state engine.
+- Canvas-based living-city presentation.
+- Browser Web Audio synthesis; no bundled soundtrack is required.
+- LocalStorage save/replay guarded by the same replay validator used by tests.
+- Seeded generator with bounded recovery-certificate checking.
+- Static GitHub Pages deployment.
+- Single-file offline packaging with embedded JavaScript and JSON modules.
+- GitHub Actions verification on Linux and Windows.
 
 ~~~sh
-npm run demo -- CASCADE
-npm run demo -- overdrive --authored
-npm run strategies
+npm ci --ignore-scripts
+npm run check
 npm run browser:smoke
 npm run stage5:smoke
+npm run launch:capture
+npm run launch:video
+npm run release
 ~~~
 
-## Read the project
+## Project map
 
 | Document | Purpose |
 | --- | --- |
-| [Game rules](docs/GAME_RULES.md) | Resources, actions, tools, permissions, cascades, endings |
-| [Seeded runs](docs/SEEDED_RUNS.md) | Random generation, drafts, recovery checks, replay limits |
-| [Architecture](docs/ARCHITECTURE.md) | Engine and browser structure |
-| [Experience and art](docs/EXPERIENCE_AND_ART.md) | Tutorial, instructions, graphics, accessibility |
-| [Build and test plan](docs/BUILD_AND_TEST_PLAN.md) | Staged implementation and validation gates |
-| [Verification](docs/VERIFICATION.md) | Actual results and explicit limitations |
-| [Playtest protocol](docs/PLAYTEST_PROTOCOL.md) | Human-observation procedure and session form |
-| [Release](docs/RELEASE.md) | Final package contents and build/verification flow |
-| [Demo script](docs/DEMO_SCRIPT.md) | 3–5-minute real-gameplay demonstration outline |
-| [Competition](docs/COMPETITION.md) | Previously checked requirements and unresolved entry details |
-| [Handoff](HANDOFF.md) | Exact continuation point |
+| [Game rules](docs/GAME_RULES.md) | Actions, permissions, dependencies, cascades and endings |
+| [Seeded runs](docs/SEEDED_RUNS.md) | Generation, tool drafts, recovery checks and replay limits |
+| [Architecture](docs/ARCHITECTURE.md) | Engine/browser boundaries |
+| [Experience and art](docs/EXPERIENCE_AND_ART.md) | Tutorial, graphics and accessibility |
+| [Verification](docs/VERIFICATION.md) | Actual test evidence and explicit limitations |
+| [Playtest protocol](docs/PLAYTEST_PROTOCOL.md) | Human observation procedure |
+| [Release](docs/RELEASE.md) | Packaging and verification flow |
+| [Demo script](docs/DEMO_SCRIPT.md) | 3–5 minute hackathon demonstration |
+| [Handoff](HANDOFF.md) | Exact continuation state |
 
-Runtime rules live in [rules-v0.2.json](design/rules-v0.2.json). The v0.1 rules and worked traces remain as historical regression fixtures.
+## Runtime content
 
-## Delivery boundary
+Rules: `0.2.0` · Content: `0.2.0` · Generator: `seeded-crisis-1`
 
-The game is packaged and technically release-ready. Competition registration, deployment, public submission, and claims about human fun/learning are separate steps and have not been performed.
+Content hash: `bc4ecfbe7cdbffdf`
 
-Design and code assistance: OpenAI ChatGPT/Codex. The current city visuals and procedural sound cues are generated at runtime from original project code; no external art/audio pack or live model is required.
+---
+
+<p align="center"><sub>Design and code assistance: OpenAI ChatGPT/Codex. Cascade remains an independent Purysho project.</sub></p>
