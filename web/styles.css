@@ -337,3 +337,72 @@ button:disabled { cursor: not-allowed; }
   font-size: 8px;
 }
 .tutorial-actions .start-button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
+
+
+/* Stage 4 consequence feedback */
+.resolution-feedback {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: 104px;
+  width: min(430px, calc(100% - 520px));
+  min-width: 300px;
+  padding: 10px 14px 11px;
+  transform: translate(-50%, -10px);
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid rgba(130, 178, 188, .20);
+  border-radius: 11px;
+  background: rgba(5, 17, 23, .90);
+  box-shadow: 0 16px 42px rgba(0,0,0,.28);
+  backdrop-filter: blur(8px);
+  transition: opacity .18s ease, transform .18s ease, border-color .18s ease;
+}
+.resolution-feedback.show { opacity: 1; transform: translate(-50%, 0); }
+.resolution-feedback span,
+.resolution-feedback strong,
+.resolution-feedback small { display: block; }
+.resolution-feedback span {
+  color: #7f9ba0;
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .14em;
+}
+.resolution-feedback strong {
+  margin-top: 3px;
+  color: #dce9e6;
+  font-size: 14px;
+  letter-spacing: -.015em;
+}
+.resolution-feedback small {
+  margin-top: 4px;
+  color: #8fa8aa;
+  font-size: 8px;
+  line-height: 1.35;
+}
+.resolution-feedback.danger {
+  border-color: rgba(255,101,93,.48);
+  box-shadow: 0 16px 46px rgba(107, 29, 24, .28);
+}
+.resolution-feedback.danger span { color: #ff8c83; }
+.resolution-feedback.warning {
+  border-color: rgba(241,178,109,.42);
+  box-shadow: 0 16px 46px rgba(99, 66, 25, .23);
+}
+.resolution-feedback.warning span { color: #efc286; }
+.resolution-feedback.success {
+  border-color: rgba(107,217,189,.44);
+  box-shadow: 0 16px 46px rgba(26, 86, 70, .22);
+}
+.resolution-feedback.success span { color: var(--mint); }
+
+@media (max-width: 1220px) {
+  .resolution-feedback {
+    width: min(360px, calc(100% - 455px));
+    min-width: 270px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resolution-feedback { transition: none; }
+}
