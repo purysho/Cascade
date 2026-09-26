@@ -39,13 +39,6 @@ You have twelve rounds, three actions per round, and four systems to save: **pow
 
 <p align="center"><sub>18.6 seconds · real Cascade UI · original procedural audio · rendered from the repository's reproducible launch-media pipeline</sub></p>
 
-## Watch the launch trailer
-
-<p align="center">
-  <a href="docs/media/cascade-trailer.mp4"><img src="docs/media/cascade-trailer.jpg" alt="Watch the Cascade launch trailer" width="100%"></a>
-</p>
-
-<p align="center"><sub>20-second cinematic trailer built from real Cascade browser captures using the repository's reproducible /brag workflow.</sub></p>
 
 ## See the city fail
 
