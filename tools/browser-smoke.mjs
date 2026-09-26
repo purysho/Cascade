@@ -149,6 +149,8 @@ try {
   await click(session, "#commit");
   await waitText(session, "#round-value", "2/12");
   const feedbackTitle = await waitNonEmptyText(session, "#resolution-feedback-title");
+  const feedbackScreenshot = await webdriver(`/session/${session}/screenshot`);
+  writeFileSync(resolve(verification, "stage4-feedback.png"), Buffer.from(feedbackScreenshot, "base64"));
   const eventText = await text(session, "#event-log");
   if (!eventText.trim()) fail("Causal event log remained empty after committing a round.");
 
@@ -226,6 +228,7 @@ try {
     tutorialFlow: ["read danger", "break cascade", "contain safely", "restore control", "exit without overwriting campaign"],
     screenshot: "verification/browser-smoke.png",
     tutorialScreenshot: "verification/tutorial-smoke.png",
+    stage4Screenshot: "verification/stage4-feedback.png",
     soundPreference: "Muted persisted across reload",
     resolutionFeedback: "Rendered from committed engine events",
     severeConsoleEntries: severe.length,
