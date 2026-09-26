@@ -15,11 +15,14 @@ import {
   type ToolId,
 } from "../src/index.ts";
 import { TUTORIALS, createTutorialState } from "./tutorial.ts";
+import { createAudioController } from "./audio.ts";
 
 type PlayerView = ReturnType<typeof projectForPlayer>;
 type CommandInput = Operation | { type: "undo" } | { type: "commit_round" } | { type: "choose_tool"; tool: ToolId | null };
 type Building = { x: number; y: number; w: number; h: number; district: number; phase: number };
 type Vehicle = { route: number; phase: number; lane: number };
+type FeedbackTone = "danger" | "warning" | "success" | "neutral";
+type FeedbackPulse = { target: ServiceId | null; tone: FeedbackTone; startedAt: number; duration: number };
 
 const SERVICE_META: Record<ServiceId, { name: string; short: string; icon: string; description: string }> = {
   grid: { name: "Power Grid", short: "GRID", icon: "⚡", description: "Electricity and generation" },
@@ -42,6 +45,8 @@ const SAVE_KEY = "cascade.save.v1";
 const SETTINGS_KEY = "cascade.settings.v1";
 const reducedBySystem = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let motionEnabled = !reducedBySystem;
+let soundEnabled = true;
+const audio = createAudioController(soundEnabled);
 let state: GameState | null = null;
 let view: PlayerView | null = null;
 let selected: ServiceId = "grid";
@@ -53,6 +58,8 @@ let saveWarningShown = false;
 let pendingResume: GameState | null = null;
 let tutorialIndex: number | null = null;
 let tutorialHintLevel = 0;
+let feedbackPulses: FeedbackPulse[] = [];
+let feedbackTimer = 0;
 
 function must<T extends Element>(selector: string): T {
   const element = document.querySelector(selector);
@@ -175,6 +182,7 @@ function begin(game: GameState): void {
   state = game;
   selected = activeTutorial()?.focus ?? "grid";
   lastEvents = [];
+  clearResolutionFeedback();
   rebuildCity(descriptorLabel(game));
   startScreen.classList.add("hidden");
   resultModal.close();
@@ -188,6 +196,7 @@ function resume(game: GameState): void {
   state = game;
   selected = "grid";
   lastEvents = [];
+  clearResolutionFeedback();
   rebuildCity(descriptorLabel(game));
   startScreen.classList.add("hidden");
   refresh();
@@ -213,6 +222,9 @@ function dispatch(command: CommandInput): void {
   }
   state = result.state;
   lastEvents = result.events;
+  if (command.type === "act" || command.type === "use_tool") audio.playUi("action");
+  else if (command.type === "undo") audio.playUi("undo");
+  else if (command.type === "choose_tool") audio.playUi("draft");
   refresh();
   saveGame();
   if (result.resolution) announceResolution(result.resolution.events);
@@ -565,6 +577,7 @@ function leaveTutorial(): void {
   state = null;
   view = null;
   lastEvents = [];
+  clearResolutionFeedback();
   tutorialPanel.classList.add("hidden");
   if (draftModal.open) draftModal.close();
   if (resultModal.open) resultModal.close();
@@ -591,9 +604,89 @@ function announceResolution(events: DomainEvent[]): void {
   const executed = events.filter(event => event.kind === "order_executed").length;
   const cascades = events.filter(event => event.kind === "dependency_failure").length;
   const blocked = events.filter(event => event.kind === "order_blocked").length;
+  audio.playResolution(events);
+  showResolutionFeedback(events);
   if (cascades > 0) showToast(`${cascades} infrastructure link${cascades > 1 ? "s" : ""} failed. Watch the city map.`, "danger");
   else if (executed > 0) showToast(`${executed} AI order${executed > 1 ? "s" : ""} executed; ${blocked} blocked.`, "warning");
   else if (blocked > 0) showToast(`All ${blocked} AI order${blocked > 1 ? "s" : ""} blocked this round.`, "success");
+}
+
+function showResolutionFeedback(events: DomainEvent[]): void {
+  const kinds = new Set(events.map(event => event.kind));
+  const cascades = events.filter(event => event.kind === "dependency_failure").length;
+  const executed = events.filter(event => event.kind === "order_executed").length;
+  const blocked = events.filter(event => event.kind === "order_blocked").length;
+  const delayed = events.filter(event => event.kind === "effect_applied").length;
+
+  let tone: FeedbackTone = "neutral";
+  let kicker = "ROUND RESOLVED";
+  let title = "City state updated";
+  let detail = "No major disruption registered.";
+
+  if (kinds.has("win")) {
+    tone = "success";
+    kicker = "CONTROL RECOVERED";
+    title = "Human oversight holds";
+    detail = "All durable restoration conditions survived resolution.";
+  } else if (kinds.has("collapse")) {
+    tone = "danger";
+    kicker = "CASCADE CRITICAL";
+    title = "City systems overwhelmed";
+    detail = "The incident crossed a terminal failure threshold.";
+  } else if (kinds.has("deadline")) {
+    tone = "warning";
+    kicker = "DEADLINE REACHED";
+    title = "Crisis remains unresolved";
+    detail = "The recovery window closed before durable control was restored.";
+  } else if (cascades > 0 || delayed > 0) {
+    tone = "danger";
+    kicker = "CASCADE PROPAGATED";
+    title = cascades > 0 ? `${cascades} infrastructure link${cascades === 1 ? "" : "s"} failed` : "Committed damage arrived";
+    detail = delayed > 0 ? `${delayed} delayed impact${delayed === 1 ? "" : "s"} landed this round.` : "A weak supplier damaged dependent services.";
+  } else if (executed > 0) {
+    tone = "warning";
+    kicker = "AI ORDER EXECUTED";
+    title = `${executed} unchecked order${executed === 1 ? "" : "s"} resolved`;
+    detail = blocked > 0 ? `${blocked} additional order${blocked === 1 ? "" : "s"} were blocked.` : "The optimisation system changed the city before human control was restored.";
+  } else if (blocked > 0) {
+    tone = "success";
+    kicker = "CONTAINMENT HELD";
+    title = `${blocked} AI order${blocked === 1 ? "" : "s"} blocked`;
+    detail = "Current safeguards prevented the unsafe optimisation from executing.";
+  } else if (events.some(event => event.kind === "city_strain")) {
+    tone = "neutral";
+    title = "Public strain recalculated";
+    detail = "The city absorbed this round without a new AI order or cascade.";
+  }
+
+  const panel = must<HTMLElement>("#resolution-feedback");
+  must<HTMLElement>("#resolution-feedback-kicker").textContent = kicker;
+  must<HTMLElement>("#resolution-feedback-title").textContent = title;
+  must<HTMLElement>("#resolution-feedback-detail").textContent = detail;
+  panel.className = `resolution-feedback show ${tone}`;
+
+  const now = performance.now();
+  feedbackPulses = events
+    .filter(event => ["order_executed", "order_blocked", "dependency_failure", "effect_applied", "win", "collapse", "deadline"].includes(event.kind))
+    .slice(-8)
+    .map(event => ({
+      target: event.target && SERVICES.includes(event.target as ServiceId) ? event.target as ServiceId : null,
+      tone: event.kind === "order_blocked" || event.kind === "win" ? "success"
+        : event.kind === "order_executed" || event.kind === "deadline" ? "warning"
+        : "danger",
+      startedAt: now,
+      duration: event.kind === "win" || event.kind === "collapse" ? 1500 : 1050,
+    }));
+
+  window.clearTimeout(feedbackTimer);
+  feedbackTimer = window.setTimeout(() => panel.classList.remove("show"), 1800);
+}
+
+function clearResolutionFeedback(): void {
+  feedbackPulses = [];
+  window.clearTimeout(feedbackTimer);
+  const panel = document.querySelector<HTMLElement>("#resolution-feedback");
+  if (panel) panel.className = "resolution-feedback";
 }
 
 function openResults(): void {
@@ -645,18 +738,46 @@ function loadSettings(): void {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (!raw) return;
-    const parsed = JSON.parse(raw) as { motion?: boolean };
+    const parsed = JSON.parse(raw) as { motion?: boolean; sound?: boolean };
     if (typeof parsed.motion === "boolean") motionEnabled = parsed.motion && !reducedBySystem;
+    if (typeof parsed.sound === "boolean") soundEnabled = parsed.sound;
   } catch {
     // Ignore malformed optional settings.
   }
+  audio.setEnabled(soundEnabled);
   updateMotionButton();
+  updateSoundButton();
+}
+
+function saveSettings(): void {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ motion: motionEnabled, sound: soundEnabled }));
+  } catch {
+    // Optional presentation settings do not affect the run.
+  }
 }
 
 function updateMotionButton(): void {
   const button = must<HTMLButtonElement>("#motion-toggle");
   button.textContent = `Motion: ${motionEnabled ? "On" : "Reduced"}`;
   button.setAttribute("aria-pressed", String(motionEnabled));
+}
+
+function updateSoundButton(): void {
+  const label = `Sound: ${soundEnabled ? "On" : "Muted"}`;
+  for (const selector of ["#sound-toggle", "#start-sound-toggle"]) {
+    const button = must<HTMLButtonElement>(selector);
+    button.textContent = label;
+    button.setAttribute("aria-pressed", String(soundEnabled));
+  }
+}
+
+function toggleSound(): void {
+  soundEnabled = !soundEnabled;
+  audio.setEnabled(soundEnabled);
+  saveSettings();
+  updateSoundButton();
+  if (soundEnabled) audio.playUi("confirm");
 }
 
 function showToast(message: string, tone: "danger" | "warning" | "success" | "neutral" = "neutral"): void {
@@ -703,6 +824,7 @@ function drawCity(time: number): void {
   drawDirectives(w, h, t);
   drawServices(w, h, t);
   drawPending(w, h);
+  drawResolutionPulses(w, h, time);
   drawStrainVignette(w, h, t);
 
   requestAnimationFrame(drawCity);
@@ -980,6 +1102,34 @@ function roundedRect(x: number, y: number, width: number, height: number, radius
   ctx.roundRect(x, y, width, height, radius);
 }
 
+function drawResolutionPulses(w: number, h: number, time: number): void {
+  if (feedbackPulses.length === 0) return;
+  feedbackPulses = feedbackPulses.filter(pulse => time - pulse.startedAt < pulse.duration);
+  for (const pulse of feedbackPulses) {
+    const elapsed = Math.max(0, time - pulse.startedAt);
+    const progress = motionEnabled ? Math.min(1, elapsed / pulse.duration) : 0.48;
+    const anchor = pulse.target ? pointFor(pulse.target, w, h) : { x: w / 2, y: h / 2 };
+    const radius = pulse.target ? 36 + progress * 74 : Math.min(w, h) * (0.16 + progress * 0.42);
+    const alpha = Math.max(0, (1 - progress) * 0.72);
+    const color = pulse.tone === "success" ? `rgba(107, 217, 189, ${alpha})`
+      : pulse.tone === "warning" ? `rgba(241, 178, 109, ${alpha})`
+      : pulse.tone === "danger" ? `rgba(255, 101, 93, ${alpha})`
+      : `rgba(150, 205, 211, ${alpha})`;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    if (!pulse.target) {
+      ctx.globalAlpha = alpha * 0.12;
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, w, h);
+    }
+    ctx.restore();
+  }
+}
+
 function drawStrainVignette(w: number, h: number, t: number): void {
   const strain = view?.core.strain ?? 0;
   if (strain < 7) return;
@@ -1029,6 +1179,7 @@ must<HTMLButtonElement>("#result-menu").addEventListener("click", () => {
   startScreen.classList.remove("hidden");
   state = null;
   view = null;
+  clearResolutionFeedback();
 });
 must<HTMLButtonElement>("#tutorial-reset").addEventListener("click", () => {
   if (tutorialIndex !== null) startTutorial(tutorialIndex);
@@ -1046,9 +1197,11 @@ must<HTMLButtonElement>("#tutorial-next").addEventListener("click", () => {
   else startTutorial(tutorialIndex + 1);
 });
 must<HTMLButtonElement>("#tutorial-exit").addEventListener("click", leaveTutorial);
+must<HTMLButtonElement>("#sound-toggle").addEventListener("click", toggleSound);
+must<HTMLButtonElement>("#start-sound-toggle").addEventListener("click", toggleSound);
 must<HTMLButtonElement>("#motion-toggle").addEventListener("click", () => {
   motionEnabled = !motionEnabled && !reducedBySystem;
-  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ motion: motionEnabled })); } catch { /* Optional setting. */ }
+  saveSettings();
   updateMotionButton();
 });
 

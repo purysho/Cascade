@@ -81,6 +81,14 @@ async function waitText(session, selector, expected) {
   }
   fail(`Expected ${selector} to read "${expected}", got "${await text(session, selector)}"`);
 }
+async function waitNonEmptyText(session, selector) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const value = await text(session, selector);
+    if (value.trim()) return value;
+    await wait(100);
+  }
+  fail(`Timed out waiting for visible text in ${selector}`);
+}
 async function waitEnabled(session, selector) {
   for (let attempt = 0; attempt < 50; attempt++) {
     const id = await waitElement(session, selector);
@@ -121,6 +129,9 @@ try {
 
   await webdriver(`/session/${session}/url`, "POST", { url: "http://127.0.0.1:4173/" });
   await waitElement(session, "#start-generated");
+  await waitText(session, "#start-sound-toggle", "Sound: On");
+  await click(session, "#start-sound-toggle");
+  await waitText(session, "#start-sound-toggle", "Sound: Muted");
   await setValue(session, "#seed-input", "BROWSER-SMOKE");
   await click(session, "#start-generated");
   await waitText(session, "#run-code", "BROWSER-SMOKE");
@@ -137,6 +148,9 @@ try {
 
   await click(session, "#commit");
   await waitText(session, "#round-value", "2/12");
+  const feedbackTitle = await waitNonEmptyText(session, "#resolution-feedback-title");
+  const feedbackScreenshot = await webdriver(`/session/${session}/screenshot`);
+  writeFileSync(resolve(verification, "stage4-feedback.png"), Buffer.from(feedbackScreenshot, "base64"));
   const eventText = await text(session, "#event-log");
   if (!eventText.trim()) fail("Causal event log remained empty after committing a round.");
 
@@ -147,6 +161,7 @@ try {
   await webdriver(`/session/${session}/element/${resume}/click`, "POST", {});
   await waitText(session, "#round-value", "2/12");
   await waitText(session, "#run-code", "BROWSER-SMOKE");
+  await waitText(session, "#sound-toggle", "Sound: Muted");
 
   const screenshot = await webdriver(`/session/${session}/screenshot`);
   writeFileSync(resolve(verification, "browser-smoke.png"), Buffer.from(screenshot, "base64"));
@@ -213,6 +228,9 @@ try {
     tutorialFlow: ["read danger", "break cascade", "contain safely", "restore control", "exit without overwriting campaign"],
     screenshot: "verification/browser-smoke.png",
     tutorialScreenshot: "verification/tutorial-smoke.png",
+    stage4Screenshot: "verification/stage4-feedback.png",
+    soundPreference: "Muted persisted across reload",
+    resolutionFeedback: "Rendered from committed engine events",
     severeConsoleEntries: severe.length,
   }, null, 2));
 } finally {

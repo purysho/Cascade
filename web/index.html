@@ -14,6 +14,7 @@
       <div class="brand"><span class="brand-mark">C</span><div><strong>CASCADE</strong><small>CITY CONTROL / INCIDENT 01</small></div></div>
       <div class="run-identity"><span>RUN</span><code id="run-code">NO ACTIVE CRISIS</code></div>
       <div class="top-actions">
+        <button id="sound-toggle" class="quiet-button" type="button" aria-pressed="true">Sound: On</button>
         <button id="motion-toggle" class="quiet-button" type="button">Motion: On</button>
         <button id="help" class="quiet-button" type="button">How to play</button>
       </div>
@@ -29,6 +30,12 @@
           <div class="hud-stat strain"><span>PUBLIC STRAIN</span><strong id="strain-value">—</strong></div>
           <div class="hud-stat ai"><span>AI SCORE</span><strong id="ai-value">—</strong></div>
           <div class="hud-stat"><span>STABLE</span><strong id="streak-value">—</strong></div>
+        </div>
+
+        <div id="resolution-feedback" class="resolution-feedback" aria-live="polite" aria-atomic="true">
+          <span id="resolution-feedback-kicker">ROUND RESOLVED</span>
+          <strong id="resolution-feedback-title">City state updated</strong>
+          <small id="resolution-feedback-detail"></small>
         </div>
 
         <aside id="service-rail" class="service-rail" aria-label="City services"></aside>
@@ -135,7 +142,7 @@
         </div>
       </section>
     </div>
-    <footer><span>12 rounds · 3 action points / round · deterministic rules</span><span>No live AI · no network required after build</span></footer>
+    <footer><span>12 rounds · 3 action points / round · deterministic rules</span><button id="start-sound-toggle" class="start-sound-toggle" type="button" aria-pressed="true">Sound: On</button><span>No live AI · no network required after build</span></footer>
   </section>
 
   <dialog id="draft-modal" class="game-dialog draft-dialog">

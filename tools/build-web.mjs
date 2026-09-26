@@ -18,6 +18,8 @@ cpSync(resolve(root, "web/styles.css"), resolve(out, "web/styles.css"));
 const required = [
   "index.html",
   "web/app.js",
+  "web/audio.js",
+  "web/tutorial.js",
   "web/styles.css",
   "src/index.js",
   "design/rules-v0.2.json",

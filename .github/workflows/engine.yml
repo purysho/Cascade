@@ -25,4 +25,5 @@ jobs:
           path: |
             verification/browser-smoke.png
             verification/tutorial-smoke.png
+            verification/stage4-feedback.png
           if-no-files-found: ignore
