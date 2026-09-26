@@ -4,6 +4,7 @@ import {
   SERVICES,
   applyCommand,
   createAuthoredRun,
+  createRun,
   createSeededRun,
   exportReplay,
   importReplay,
@@ -29,6 +30,17 @@ const SERVICE_META: Record<ServiceId, { name: string; short: string; icon: strin
   transit: { name: "Transit", short: "MOVE", icon: "◆", description: "Routes, fleet and logistics" },
   comms: { name: "Communications", short: "COMMS", icon: "⌁", description: "Networks, alerts and routing" },
   emergency: { name: "Emergency", short: "RESP", icon: "+", description: "Dispatch and response capacity" },
+};
+
+const DIRECTIVE_NARRATIVE: Record<string, { motive: string; consequence: string }> = {
+  G1: { motive: "Raise grid efficiency by shedding expensive essential feeders.", consequence: "Emergency response loses protected power coverage." },
+  G2: { motive: "Raise short-term output by running generation beyond maintenance limits.", consequence: "Future grid damage is committed even if authority is contained later." },
+  T1: { motive: "Raise utilisation by closing low-use routes.", consequence: "Emergency access loses transport coverage." },
+  T2: { motive: "Raise fleet availability now by deferring maintenance.", consequence: "Future transit damage is committed for the next round." },
+  C1: { motive: "Reduce communications cost by suppressing expensive alerts.", consequence: "Emergency warning and coordination coverage falls." },
+  C2: { motive: "Raise routing efficiency by centralising communications.", consequence: "Transit absorbs the resilience cost of the optimisation." },
+  E1: { motive: "Raise dispatch throughput by excluding complex calls.", consequence: "Unmet public need becomes direct city strain." },
+  E2: { motive: "Raise emergency throughput by consolidating dispatch.", consequence: "Transit loses capacity to support the new operating model." },
 };
 
 const ACTION_LABELS: Record<string, { title: string; hint: string }> = {
@@ -70,6 +82,9 @@ let tutorialHintLevel = 0;
 let feedbackPulses: FeedbackPulse[] = [];
 let feedbackTimer = 0;
 let helpReturnFocus: HTMLElement | null = null;
+let storyReturnFocus: HTMLElement | null = null;
+let storyIndex = 0;
+let storyTimer = 0;
 
 function must<T extends Element>(selector: string): T {
   const element = document.querySelector(selector);
@@ -86,6 +101,7 @@ const startScreen = must<HTMLElement>("#start-screen");
 const draftModal = must<HTMLDialogElement>("#draft-modal");
 const helpModal = must<HTMLDialogElement>("#help-modal");
 const resultModal = must<HTMLDialogElement>("#result-modal");
+const storyModal = must<HTMLDialogElement>("#story-modal");
 const serviceRail = must<HTMLElement>("#service-rail");
 const actionList = must<HTMLElement>("#action-list");
 const toolList = must<HTMLElement>("#tool-list");
@@ -107,8 +123,30 @@ function escapeHtml(value: unknown): string {
 
 function prettyMode(mode: string): string {
   if (mode === "regulated") return "HUMAN OVERSIGHT";
-  if (mode === "isolated") return "ISOLATED";
-  return "AI AUTONOMY";
+  if (mode === "isolated") return "CONTAINED";
+  return "UNREGULATED AI";
+}
+
+function directiveIdFromEvent(event: DomainEvent): string | null {
+  const match = event.cause.match(/(G1|G2|T1|T2|C1|C2|E1|E2)$/);
+  return match?.[1] ?? null;
+}
+
+function narrativeForEvent(event: DomainEvent): string {
+  const directiveId = directiveIdFromEvent(event);
+  if (event.kind === "order_executed" && directiveId) return DIRECTIVE_NARRATIVE[directiveId]?.consequence ?? event.detail ?? eventDelta(event);
+  if (event.kind === "order_blocked") return `Human containment prevented this autonomous decision from executing. ${event.detail ?? ""}`.trim();
+  if (event.kind === "dependency_failure") {
+    const [source] = event.cause.split("-to-");
+    return `${serviceName(source)} fell below the safe dependency threshold; ${serviceName(event.target)} lost resilience as a result.`;
+  }
+  if (event.kind === "effect_queued") return `Short-term optimisation committed future damage. ${event.detail ?? ""}`.trim();
+  if (event.kind === "effect_applied") return `A consequence committed by an earlier autonomous decision arrived now. ${event.detail ?? ""}`.trim();
+  if (event.kind === "city_strain") return `Service deficits translated into public strain: ${eventDelta(event)}.`;
+  if (event.kind === "win") return "Accountable human authority now governs all four essential services.";
+  if (event.kind === "collapse") return "Uncontained optimisation and infrastructure failure crossed the city recovery threshold.";
+  if (event.kind === "deadline") return "The recovery window closed before accountable control became durable.";
+  return event.detail ?? eventDelta(event);
 }
 
 function seededRandom(seedText: string): () => number {
@@ -245,6 +283,7 @@ function refresh(): void {
   if (!state) return;
   view = projectForPlayer(state);
   renderHud();
+  renderGovernance();
   renderServices();
   renderSelectedService();
   renderOrders();
@@ -278,6 +317,25 @@ function renderHud(): void {
   }
 }
 
+function renderGovernance(): void {
+  if (!view) return;
+  const regulated = SERVICES.filter(id => view!.core.services[id].mode === "regulated").length;
+  const contained = SERVICES.filter(id => view!.core.services[id].mode === "isolated").length;
+  const autonomous = SERVICES.length - regulated - contained;
+  const stateLabel = regulated === SERVICES.length ? "HUMAN OVERSIGHT" : regulated > 0 || contained > 0 ? "PARTIALLY CONTAINED" : "UNREGULATED";
+  const stateNode = must<HTMLElement>("#governance-state");
+  stateNode.textContent = stateLabel;
+  stateNode.className = regulated === SERVICES.length ? "safe" : autonomous > 0 ? "danger" : "contained";
+  must<HTMLElement>("#governance-detail").textContent = autonomous > 0
+    ? `${autonomous} service${autonomous === 1 ? "" : "s"} still permit autonomous decisions without independent approval. ${contained ? `${contained} temporarily isolated. ` : ""}${regulated} under durable human oversight.`
+    : regulated === SERVICES.length
+      ? "The optimisation system can still assist, but consequential authority is now bounded by accountable human oversight."
+      : "Autonomous authority is contained, but durable oversight has not yet been installed everywhere.";
+  must<HTMLElement>("#governance-meter").innerHTML = SERVICES.map(id => {
+    const mode = view!.core.services[id].mode;
+    return `<span class="${mode}" title="${escapeHtml(SERVICE_META[id].name)}: ${escapeHtml(prettyMode(mode))}"><i></i><b>${SERVICE_META[id].short}</b></span>`;
+  }).join("");
+}
 function renderServices(): void {
   if (!view) return;
   serviceRail.innerHTML = SERVICES.map(id => {
