@@ -120,3 +120,43 @@ Date: 26 September 2026. Implementation: session-only browser tutorial layered o
 The first Stage 3 approach was discarded before merge because it unnecessarily extended persistent run/replay descriptors. PR #2 was closed. The clean retry starts from the green Stage 2 commit and keeps training outside campaign persistence.
 
 The extended browser smoke records `verification/tutorial-smoke.png` in addition to the existing campaign screenshot.
+
+
+## Stage 4 — sound and consequence feedback
+
+Date: 26 September 2026. Functional verification run: GitHub Actions `36217358514` on Stage 4 code/head `99cbbd4a848d7ed784534b7c5fb932fd49458934`.
+
+| Area | Status | Evidence | Remaining limit |
+| --- | --- | --- | --- |
+| Core engine/replay isolation | PASS | Stage 4 changes are confined to browser presentation/settings, smoke/build checks, docs and package metadata. Content hash remains `bc4ecfbe7cdbffdf`; 33 engine/regression/adversarial tests pass. | Presentation QA cannot prove exhaustive engine behaviour; the existing finite suite remains the boundary. |
+| Generated-crisis stress | PASS | The same workflow rechecked 1,000 deterministic generated crises with 1,000 verified winning certificates and 1,000 replay-checked automated sessions. | Finite deterministic sample. |
+| Offline audio implementation | PASS for implementation scope | `web/audio.ts` uses lazy browser Web Audio synthesis only; no external audio asset or runtime network call is required. Browser build explicitly requires emitted `web/audio.js`. | Headless CI cannot judge subjective loudness, mix quality, or device speakers. |
+| Sound preference | PASS | Chrome smoke mutes from the visible start-screen control, reloads the saved campaign, and verifies `Sound: Muted` persists. Start and in-game sound controls are synchronized. | Other browsers/devices are not yet automated. |
+| Event-driven consequence routing | PASS | Committed DomainEvents drive the audio category, summary banner, and map pulses. No feedback code mutates GameState or replay data. | Human perception of timing/intensity still needs playtesting. |
+| Reduced-motion compatibility | PASS by implementation inspection | Animated pulse expansion is suppressed when motion is reduced; informational banner/static feedback remains. | OS/browser accessibility combinations need broader rendered checks. |
+| Browser smoke | PASS | Chrome completed generated entry, draft, legal action, undo, round commit, Stage 4 feedback, save/reload/resume, and all four tutorial exercises with zero SEVERE console entries. | Chrome desktop remains the only automated rendered environment. |
+| Offline browser module completeness | PASS | Browser build now requires `web/app.js`, `web/audio.js`, `web/tutorial.js`, CSS and engine/content files. | Final single-file package is Stage 6. |
+| Visual QA | PASS for CI viewport | CI artifacts inspected: campaign screen retains hierarchy; tutorial screen remains readable; Stage 4 banner is legible over the map, does not block the operations console, and accompanies the causal event strip. | One automated desktop viewport is not a human multi-device design review. |
+
+### Stage 4 rendered evidence
+
+The passing workflow retained:
+
+- `verification/browser-smoke.png` — resumed generated crisis;
+- `verification/tutorial-smoke.png` — final guided exercise state;
+- `verification/stage4-feedback.png` — committed AI-order consequence with the Stage 4 banner visible.
+
+Visual inspection points:
+
+1. **Copy/state:** the feedback banner reports the committed unchecked AI order rather than forecast/future information.
+2. **Layout:** the banner stays inside the city region and leaves the operations console usable.
+3. **Hierarchy:** consequence feedback is noticeable but secondary to the map and service controls.
+4. **Palette:** warning feedback uses the existing amber/orange danger language; it does not introduce a new visual system.
+5. **Continuity:** campaign and tutorial screenshots retain the established Stage 2/3 control-room layout.
+6. **Accessibility:** sound has visible mute controls and feedback is duplicated visually; reduced-motion retains non-animated information.
+
+The first Stage 4 Chrome attempt failed because the smoke tried to click the in-game topbar sound control while the start screen correctly covered it. A visible start-screen sound control was added and synchronized with the in-game control. The next attempt exposed a test timing issue: WebDriver sampled visible text at the first frame of the banner's opacity transition. The assertion was changed to wait for rendered text. Neither failure required a gameplay-engine change.
+
+### Stage 4 conclusion
+
+The Stage 4 implementation meets its scoped engineering goal: optional offline sound and stronger consequence feedback are derived from real engine events and remain outside gameplay state. The next evidence gap is Stage 5 human and broader-platform testing, not additional mechanics.
