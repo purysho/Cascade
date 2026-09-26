@@ -25,6 +25,17 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run web:build
+      - run: npm run launch:capture
+      - name: Install FFmpeg for launch trailer
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm run launch:video
+      - name: Add launch media
+        run: |
+          mkdir -p dist-web/media
+          cp verification/public-launch/*.png dist-web/media/
+          cp brag-output/brag.mp4 dist-web/media/
+          cp brag-output/brag.jpg dist-web/media/
+          cp brag-output/share-copy.txt dist-web/media/
       - name: Add Pages metadata
         run: |
           touch dist-web/.nojekyll
