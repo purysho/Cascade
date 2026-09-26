@@ -1,10 +1,13 @@
 {
   "name": "cascade",
   "version": "0.6.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "description": "A deterministic crisis strategy game about reclaiming control of unregulated AI.",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
