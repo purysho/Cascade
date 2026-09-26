@@ -14,6 +14,7 @@
     "web:build": "node tools/build-web.mjs",
     "web:serve": "node tools/serve-web.mjs",
     "web": "npm run web:build && npm run web:serve",
+    "browser:smoke": "node tools/browser-smoke.mjs",
     "check": "npm run typecheck && npm test && npm run stress && npm run web:build"
   },
   "devDependencies": {
