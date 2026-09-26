@@ -1,5 +1,5 @@
 import { CONTENT_HASH } from "../content/catalog.ts";
-import { applyCommand, createAuthoredRun } from "./engine.ts";
+import { applyCommand, createAuthoredRun, createTutorialRun } from "./engine.ts";
 import { createSeededRun } from "./generate.ts";
 import { normalizeSeed } from "./random.ts";
 import { canonical, fingerprint, integer, keys, member, record, validOperation } from "./validate.ts";
@@ -40,6 +40,9 @@ export function importReplay(text: unknown): { ok: true; state: GameState } | { 
     if (descriptor.kind === "authored") {
       valid(keys(descriptor, ["kind", "id"]) && typeof descriptor.id === "string", "authored descriptor");
       state = createAuthoredRun(descriptor.id);
+    } else if (descriptor.kind === "tutorial") {
+      valid(keys(descriptor, ["kind", "id"]) && typeof descriptor.id === "string", "tutorial descriptor");
+      state = createTutorialRun(descriptor.id);
     } else {
       valid(descriptor.kind === "seeded" && keys(descriptor, ["kind", "seed"]) && typeof descriptor.seed === "string", "seed descriptor");
       valid(normalizeSeed(descriptor.seed) === descriptor.seed, "seed must use its canonical form");
