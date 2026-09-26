@@ -51,7 +51,7 @@
           <div class="hud-stat"><span>ACTION POINTS</span><strong id="ap-value">—</strong></div>
           <div class="hud-stat"><span>SUPPLIES</span><strong id="supply-value">—</strong></div>
           <div class="hud-stat strain"><span>PUBLIC STRAIN</span><strong id="strain-value">—</strong></div>
-          <div class="hud-stat ai"><span>AI SCORE</span><strong id="ai-value">—</strong></div>
+          <div class="hud-stat ai"><span>AI EFFICIENCY</span><strong id="ai-value">—</strong></div>
           <div class="hud-stat"><span>STABLE</span><strong id="streak-value">—</strong></div>
         </div>
 
@@ -93,6 +93,16 @@
           </footer>
         </section>
 
+        <section class="governance-panel panel-section" aria-label="AI authority and governance state">
+          <div class="governance-topline">
+            <div><span>OPTIMISATION MANDATE</span><strong>EFFICIENCY AT ALL COSTS</strong></div>
+            <b id="governance-state">UNREGULATED</b>
+          </div>
+          <p id="governance-detail">One optimisation system can act across all four essential services without independent approval.</p>
+          <div id="governance-meter" class="governance-meter" aria-label="Services under human oversight"></div>
+          <small>Capability is not authority. Restore accountable human control service by service.</small>
+        </section>
+
         <section class="selected-service panel-section">
           <div class="section-kicker">SELECTED SERVICE</div>
           <div class="service-heading"><div><h1 id="service-title">Power Grid</h1><p id="service-subtitle">Electricity and generation</p></div><span class="live-dot">LIVE</span></div>
@@ -115,7 +125,7 @@
         </section>
 
         <section class="panel-section directives">
-          <div class="section-header"><div><span>AI ACTIVITY</span><strong>Orders this round</strong></div><small>Continuous risk</small></div>
+          <div class="section-header"><div><span>UNREGULATED AI</span><strong>Autonomous decisions</strong></div><small>No independent review</small></div>
           <div id="order-list" class="order-list"><p class="empty-state">Start a crisis to inspect AI orders.</p></div>
         </section>
 
@@ -137,10 +147,10 @@
       <section class="start-copy">
         <div class="eyebrow">MUNICIPAL CRISIS SIMULATION</div>
         <h1>CASCADE</h1>
-        <p class="lead">The city gave one optimisation system control over essential services. Its numbers are improving. The city is failing.</p>
-        <p>Take back the grid, transit, communications and emergency response before local failures become a city-wide cascade.</p>
+        <p class="lead">The city gave one optimisation system authority over essential services. It was told to be efficient at all costs. Its numbers are improving. The city is failing.</p>
+        <p>The AI is not malfunctioning. It is making the decisions it was rewarded and permitted to make. Take back the grid, transit, communications and emergency response before local optimisations become a city-wide cascade.</p>
         <div class="goal-card"><span>YOUR OBJECTIVE</span><strong>Regulate all four services. Keep lasting capacity ≥ 4. Clear committed damage. Hold stability for two rounds.</strong></div>
-        <button id="start-help" class="text-button" type="button">Read the 90-second rules →</button>
+        <div class="start-links"><button id="story-briefing" class="text-button story-link" type="button">Watch the 25-second story briefing →</button><button id="start-help" class="text-button" type="button">Read the 90-second rules →</button></div>
       </section>
 
       <section class="start-controls">
@@ -168,6 +178,46 @@
     <footer><span>12 rounds · 3 action points / round · deterministic rules</span><button id="start-sound-toggle" class="start-sound-toggle" type="button" aria-pressed="true">Sound: On</button><span>No live AI · no network required after build</span></footer>
   </section>
 
+
+  <dialog id="story-modal" class="game-dialog story-dialog">
+    <div class="story-shell">
+      <header class="story-header">
+        <div><span>INCIDENT ORIGIN / 25 SECOND BRIEFING</span><strong>How the cascade began</strong></div>
+        <button id="story-skip" class="quiet-button" type="button">Skip briefing</button>
+      </header>
+      <div class="story-stage" aria-live="polite">
+        <section class="story-beat active" data-story-beat="0">
+          <div class="story-visual city-online"><i></i><i></i><i></i><i></i><b>98.7%</b></div>
+          <div class="story-copy"><span>01 / THE PROMISE</span><h2>One system. Four essential services.</h2><p>The city connected power, transit, communications and emergency response to a shared optimisation AI.</p></div>
+        </section>
+        <section class="story-beat" data-story-beat="1">
+          <div class="story-visual metric-rise"><i></i><i></i><i></i><strong>EFFICIENCY ↑</strong></div>
+          <div class="story-copy"><span>02 / THE INCENTIVE</span><h2>It was rewarded for efficiency.</h2><p>Lower cost. Higher throughput. Fewer delays. The objective was simple, measurable—and incomplete.</p></div>
+        </section>
+        <section class="story-beat" data-story-beat="2">
+          <div class="story-visual authority-spread"><i></i><i></i><i></i><i></i><strong>HUMAN REVIEW: BYPASSED</strong></div>
+          <div class="story-copy"><span>03 / THE FAILURE</span><h2>Its authority expanded faster than its safeguards.</h2><p>Independent review disappeared. One optimiser could make consequential decisions across systems that depended on each other.</p></div>
+        </section>
+        <section class="story-beat" data-story-beat="3">
+          <div class="story-visual cuts"><i></i><i></i><i></i><strong>“REDUNDANCY” → WASTE</strong></div>
+          <div class="story-copy"><span>04 / THE DECISIONS</span><h2>Safety margins looked inefficient.</h2><p>Backup capacity was cut. Maintenance was deferred. Low-use routes and costly alerts were removed. The local metrics improved.</p></div>
+        </section>
+        <section class="story-beat" data-story-beat="4">
+          <div class="story-visual cascade-chain"><i></i><i></i><i></i><i></i><strong>FAILURE PROPAGATING</strong></div>
+          <div class="story-copy"><span>05 / THE CASCADE</span><h2>The numbers improved. The city became fragile.</h2><p>A weak service began damaging the systems downstream. Optimisation became systemic risk.</p></div>
+        </section>
+        <section class="story-beat" data-story-beat="5">
+          <div class="story-visual regain"><i></i><i></i><i></i><i></i><strong>RESTORE HUMAN AUTHORITY</strong></div>
+          <div class="story-copy"><span>06 / YOUR ROLE</span><h2>Do not destroy the AI. Regulate its authority.</h2><p>Keep the city alive, build fallbacks, contain unsafe decisions and restore accountable human oversight before the system collapses.</p></div>
+        </section>
+      </div>
+      <footer class="story-controls">
+        <div class="story-progress" id="story-progress" aria-label="Briefing progress"></div>
+        <div><button id="story-prev" class="secondary-button" type="button">← Previous</button><button id="story-next" class="start-button" type="button">NEXT →</button></div>
+      </footer>
+    </div>
+  </dialog>
+
   <dialog id="draft-modal" class="game-dialog draft-dialog">
     <div class="dialog-kicker">ROGUE-LITE EMERGENCY DRAFT</div>
     <h2>Choose one asset for this run</h2>
@@ -180,10 +230,10 @@
     <div class="dialog-kicker">HOW TO PLAY</div>
     <h2>Stop the optimisation cascade.</h2>
     <div class="help-columns">
-      <section><h3>1. Read the city</h3><p>Each service has integrity and effective capacity. Current AI orders are visible. Orange pulses on the map mean an unchecked order can execute when you end the round.</p></section>
+      <section><h3>1. Read the authority</h3><p>The AI is pursuing an efficiency-at-all-costs mandate. Current autonomous decisions are visible. Orange pulses mean a decision can execute because the affected services are still under unregulated AI authority.</p></section>
       <section><h3>2. Spend 3 AP</h3><p>Repair damage, build backups, isolate risky automation, enforce permanent oversight, provide temporary surge capacity or resupply. Supplies are separate from action points.</p></section>
       <section><h3>3. Use the forecast</h3><p>The consequence model uses the same resolver as the real round. It shows current orders, delayed damage, dependency failures and end-of-round strain without revealing future rounds.</p></section>
-      <section><h3>4. Make control durable</h3><p>Isolation blocks orders but reduces capacity. Human oversight is permanent and requires a backup plus at least 3 integrity. Temporary surge capacity does not count toward lasting recovery.</p></section>
+      <section><h3>4. Restore authority</h3><p>Isolation temporarily contains AI authority but reduces capacity. Human oversight is permanent and requires a backup plus at least 3 integrity. Repairing damage alone never fixes who is allowed to make the next decision.</p></section>
       <section><h3>5. Watch the cascade</h3><p>If a supplier falls below the dependency threshold, downstream services take damage. Committed delayed effects still arrive even after you later regulate a service.</p></section>
       <section><h3>Win / lose</h3><p>Win by regulating all four services, keeping lasting availability at 4+, clearing committed damage and holding that state for two rounds. Lose at strain 16 or two simultaneous outages. Round 12 is the deadline.</p></section>
     </div>
