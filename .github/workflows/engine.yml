@@ -19,6 +19,7 @@ jobs:
       - run: npm run check
       - run: npm run browser:smoke
       - run: npm run stage5:smoke
+      - run: npm run launch:capture
       - run: npm run release
         env:
           CASCADE_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -36,6 +37,7 @@ jobs:
             verification/stage5-zoom-200.png
             verification/stage5-1920.png
             verification/release-file-smoke.png
+            verification/public-launch/*.png
           if-no-files-found: ignore
       - if: always()
         uses: actions/upload-artifact@v4
