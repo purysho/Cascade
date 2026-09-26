@@ -31,15 +31,30 @@ Cascade is a solo crisis-strategy game about an optimisation system operating ac
 
 You have twelve rounds, three actions per round, and four systems to save: **power, transit, communications, and emergency response**. Repairing damage buys time. Winning means restoring durable human control.
 
+## Watch the launch trailer
+
+<p align="center">
+  <a href="https://purysho.github.io/Cascade/media/brag.mp4"><img src="https://purysho.github.io/Cascade/media/brag.jpg" alt="Watch the Cascade cinematic launch trailer" width="100%"></a>
+</p>
+
+<p align="center"><sub>18.6 seconds · real Cascade UI · original procedural audio · rendered from the repository's reproducible launch-media pipeline</sub></p>
+
 ## See the city fail
 
 | Live city | Decision console |
 | --- | --- |
-| ![Cascade live city](docs/screenshots/cascade-live-city.png) | ![Cascade decision console](docs/screenshots/cascade-decision.png) |
+| ![Cascade live city](https://purysho.github.io/Cascade/media/cascade-live-city.png) | ![Cascade decision console](https://purysho.github.io/Cascade/media/cascade-decision.png) |
 
 | Guided training | Crisis selection |
 | --- | --- |
-| ![Cascade guided training](docs/screenshots/cascade-training.png) | ![Cascade crisis selection](docs/screenshots/cascade-menu.png) |
+| ![Cascade guided training](https://purysho.github.io/Cascade/media/cascade-training.png) | ![Cascade crisis selection](https://purysho.github.io/Cascade/media/cascade-menu.png) |
+
+<details>
+<summary>Loading screen</summary>
+
+![Cascade cinematic loading screen](https://purysho.github.io/Cascade/media/cascade-boot.png)
+
+</details>
 
 ## How it plays
 
@@ -145,6 +160,7 @@ npm run check
 npm run browser:smoke
 npm run stage5:smoke
 npm run launch:capture
+npm run launch:video
 npm run release
 ~~~
 
