@@ -1,6 +1,6 @@
 {
   "name": "cascade",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "A deterministic crisis strategy game about reclaiming control of unregulated AI.",
@@ -11,7 +11,10 @@
     "stress": "node tools/stress.ts",
     "demo": "node tools/demo.ts",
     "strategies": "node tools/compare-strategies.ts",
-    "check": "npm run typecheck && npm test && npm run stress"
+    "web:build": "node tools/build-web.mjs",
+    "web:serve": "node tools/serve-web.mjs",
+    "web": "npm run web:build && npm run web:serve",
+    "check": "npm run typecheck && npm test && npm run stress && npm run web:build"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
