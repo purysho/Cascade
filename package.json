@@ -1,6 +1,6 @@
 {
   "name": "cascade",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "description": "A deterministic crisis strategy game about reclaiming control of unregulated AI.",
@@ -17,6 +17,10 @@
     "browser:smoke": "node tools/browser-smoke.mjs",
     "stage5:smoke": "node tools/stage5-smoke.mjs",
     "platform:smoke": "node tools/platform-browser-smoke.mjs",
+    "package": "npm run web:build && node tools/package-release.mjs",
+    "release:verify": "node tools/verify-release.mjs",
+    "release:smoke": "node tools/release-smoke.mjs",
+    "release": "npm run package && npm run release:verify && npm run release:smoke",
     "check": "npm run typecheck && npm test && npm run stress && npm run web:build"
   },
   "devDependencies": {
