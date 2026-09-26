@@ -22,6 +22,7 @@ const required = [
   "src/index.js",
   "design/rules-v0.2.json",
   "design/scenarios-v0.1.json",
+  "design/tutorials-v0.1.json",
   "design/engine-witnesses-v0.2.json",
   "design/worked-traces-v0.1.json",
 ];
