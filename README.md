@@ -6,7 +6,7 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 
 ## Current status
 
-**Stage 4 complete: Cascade now has a playable browser match, guided training, and event-driven sound/consequence feedback built around the same deterministic engine.**
+**Stages 0–6 engineering work is complete. Cascade v0.6.0 is a tested, self-contained offline browser game.**
 
 - Four connected services, twelve rounds, three action points per round.
 - Seven operational actions, eight unsafe directives, and three authored practice crises.
@@ -14,18 +14,21 @@ Cascade is a solo crisis-strategy game about AI deployed across essential servic
 - A small roguelike layer: choose one of three consumable tools at the start and after rounds four and eight.
 - A live Canvas city: buildings react to power availability, traffic changes with transit capacity, communications pulse through the network, emergency vehicles move through the city, and unchecked AI orders visibly radiate into affected services.
 - Exact engine-backed consequence forecasts, dependency-failure links, delayed-damage markers, undo, permanent oversight, and all endings.
-- Guarded browser save/resume using the existing replay validator; invalid or incompatible saved state is not trusted.
+- Guarded browser save/resume using the replay validator, plus protection against a stale browser tab overwriting a newer save.
 - Same-crisis replay and fresh-seed replay.
-- Reduced-motion support and an in-game rules reference.
+- Reduced-motion support, keyboard/focus checks, 200% zoom reachability, and an in-game rules reference.
 - Four guided exercises: read an unsafe optimisation, break a dependency cascade, contain a live order with backup + isolation, and install permanent oversight.
-- Optional procedural Web Audio cues for actions, containment, unchecked orders, cascade failures, delayed damage, and endings; no external audio assets or runtime network are required.
-- Round-resolution feedback is driven by committed engine events: a short control-room banner and map shock rings show where real consequences landed. Reduced-motion mode keeps the information without animated expansion.
+- Optional procedural Web Audio cues for actions, containment, unchecked orders, cascade failures, delayed damage, and endings.
+- Event-driven round-resolution banners and map shock rings derived from committed engine events.
+- Direct automated browser evidence on Linux Chrome and Windows Microsoft Edge + Firefox.
+- A self-contained `Cascade-Play.html` that launches directly from an extracted ZIP via `file://`, with no backend, live AI, CDN, or runtime network requirement.
+- Release ZIP includes player instructions, build manifest, source snapshot, credits, AI-tool disclosure, verification summary, and demo materials.
 
-The engine stress sample still covers **1,000 reproducible seeds and 1,000 automated sessions**. The rendered browser smoke test exercises entry, sound preference persistence, seeded generation, the tool draft, a legal action, undo, round commitment, event-driven consequence feedback, save/reload/resume, and all four training exercises in Google Chrome. CI retains separate campaign, tutorial, and Stage 4 feedback screenshots.
+The engine stress sample covers **1,000 reproducible seeds and 1,000 automated replay-checked sessions**. The browser suite also exercises a complete winning crisis, same-crisis replay, a real collapse, tutorial paths, save/reload, corrupted saves, storage failure, newer-tab conflicts, required desktop sizes, reduced motion, and the extracted offline package.
 
-Human difficulty, fun, 8–12 minute pacing, first-time tutorial comprehension, broader browser/Windows behaviour, and the final self-contained offline package remain unverified.
+**Human enjoyment, first-time comprehension, actual play duration, subjective audio mix, and replay desire remain untested until a person is observed playing.** Use the included playtest protocol rather than treating automation as human evidence.
 
-## Run Cascade
+## Play the source build
 
 Requires Node.js 24 or newer. No production dependencies or runtime network calls.
 
@@ -35,7 +38,22 @@ npm run check
 npm run web
 ~~~
 
-Open `http://127.0.0.1:4173` after the local server starts.
+Open `http://127.0.0.1:4173`.
+
+## Build the final offline release
+
+~~~sh
+npm ci --ignore-scripts
+npm run release
+~~~
+
+This produces:
+
+- `release/Cascade-Play.html` — self-contained playable game;
+- `release/Cascade-v0.6.0.zip` — playable, metadata, source and documentation;
+- `release/BUILD-MANIFEST.json` — source commit, version, content/rules/generator IDs, content hash and playable SHA-256.
+
+The release command extracts the ZIP and launches the resulting HTML directly through `file://` in Chrome to verify entry, action/undo/commit, save/reload/resume and tutorial loading.
 
 Additional engineering checks:
 
@@ -44,9 +62,8 @@ npm run demo -- CASCADE
 npm run demo -- overdrive --authored
 npm run strategies
 npm run browser:smoke
+npm run stage5:smoke
 ~~~
-
-`browser:smoke` requires Chrome and ChromeDriver; GitHub's Ubuntu 24.04 runner supplies both. The terminal demo remains useful for engine inspection, but it is no longer the playable surface.
 
 ## Read the project
 
@@ -54,25 +71,20 @@ npm run browser:smoke
 | --- | --- |
 | [Game rules](docs/GAME_RULES.md) | Resources, actions, tools, permissions, cascades, endings |
 | [Seeded runs](docs/SEEDED_RUNS.md) | Random generation, drafts, recovery checks, replay limits |
-| [Architecture](docs/ARCHITECTURE.md) | Implemented engine and planned UI/storage |
+| [Architecture](docs/ARCHITECTURE.md) | Engine and browser structure |
 | [Experience and art](docs/EXPERIENCE_AND_ART.md) | Tutorial, instructions, graphics, accessibility |
-| [Build and test plan](docs/BUILD_AND_TEST_PLAN.md) | Remaining playable-game stages |
+| [Build and test plan](docs/BUILD_AND_TEST_PLAN.md) | Staged implementation and validation gates |
 | [Verification](docs/VERIFICATION.md) | Actual results and explicit limitations |
-| [Design review](docs/DESIGN_REVIEW.md) | Original arithmetic and current balance questions |
+| [Playtest protocol](docs/PLAYTEST_PROTOCOL.md) | Human-observation procedure and session form |
+| [Release](docs/RELEASE.md) | Final package contents and build/verification flow |
+| [Demo script](docs/DEMO_SCRIPT.md) | 3–5-minute real-gameplay demonstration outline |
 | [Competition](docs/COMPETITION.md) | Previously checked requirements and unresolved entry details |
 | [Handoff](HANDOFF.md) | Exact continuation point |
 
-Runtime rules live in [rules-v0.2.json](design/rules-v0.2.json). The v0.1 rules and worked traces remain as historical regression fixtures. Test evidence is in [verification](verification).
+Runtime rules live in [rules-v0.2.json](design/rules-v0.2.json). The v0.1 rules and worked traces remain as historical regression fixtures.
 
-## Intended delivery
+## Delivery boundary
 
-The current source builds an offline-capable static browser game in `dist-web/`; it has no runtime network, backend, accounts, multiplayer, or live-AI dependency.
+The game is packaged and technically release-ready. Competition registration, deployment, public submission, and claims about human fun/learning are separate steps and have not been performed.
 
-The next milestones are:
-
-1. Stage 5 — broader browser/Windows checks and human playtests for comprehension, pacing, strategy variety, and replay interest.
-2. Stage 6 — self-contained `Cascade-Play.html`, extracted-package verification, credits/disclosures, and demo materials.
-
-Repository work is authorised. Website deployment and competition submission have not been requested.
-
-Design and code assistance: OpenAI ChatGPT/Codex. The current city visuals and procedural sound cues are generated at runtime from original code; no external art/audio pack or remote asset is required.
+Design and code assistance: OpenAI ChatGPT/Codex. The current city visuals and procedural sound cues are generated at runtime from original project code; no external art/audio pack or live model is required.
