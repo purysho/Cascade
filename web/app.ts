@@ -551,10 +551,10 @@ function drawCity(time: number): void {
 
 function pointFor(id: ServiceId, w: number, h: number): { x: number; y: number } {
   const points: Record<ServiceId, [number, number]> = {
-    grid: [0.24, 0.27],
-    comms: [0.74, 0.25],
-    transit: [0.27, 0.73],
-    emergency: [0.73, 0.72],
+    grid: [0.37, 0.30],
+    comms: [0.61, 0.28],
+    transit: [0.30, 0.73],
+    emergency: [0.66, 0.72],
   };
   const p = points[id];
   return { x: p[0] * w, y: p[1] * h };
