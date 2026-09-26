@@ -1,6 +1,6 @@
 # Cascade — staged build and test plan
 
-The current request covers Stage 0. Later stages are specified here so that the rules, tutorial, graphics, and verification develop into one coherent game.
+Stages 0 and 1 are complete. The user authorised implementation and seeded replayability after the design milestone. Stage 2 is next; later stages turn the engine into a complete playable game.
 
 Each stage should leave real files, a working checkpoint, an updated handoff, and honest evidence. Do not treat a plan or generated mockup as an implemented feature. Resume from the last committed state after an interruption.
 
@@ -12,6 +12,8 @@ Exit evidence: coherent document links/data references, valid JSON, three inspec
 
 ## Stage 1 — headless rules engine
 
+Completed in v0.2, including seeded generation, bounded recovery checks, consumable tool drafts, and replay validation. See VERIFICATION.md. Remaining browser and human checks are not covered by this milestone.
+
 Implement strict types, content validation, legal actions, availability, turn resolution, endings, public projection, and deterministic replay. Keep UI and storage outside the engine.
 
 Port the three worked traces. Add actual boundary cases for actions not covered by the calculator. Obtain at least one winning engine trace for each authored scenario and inspect whether different situations reward different decisions.
@@ -20,7 +22,7 @@ Exit evidence: deterministic fixtures, invariant checks, every ending, and legal
 
 ## Stage 2 — one complete playable match
 
-Build entry, scenario selection, city/service controls, exact previews, undo, commit, consequence recap, endings, and both replay choices. Include a basic but coherent visual state for all services and control modes.
+Build entry, seed/authored-case selection, tool drafts and inventory, city/service controls, exact previews, undo, commit, consequence recap, endings, same-seed replay, and new-seed replay. Include a coherent visual state for all services and control modes.
 
 Add guarded saves and reload only after the complete match works in memory. Implement the offline export early enough to expose file-loading problems before art expansion.
 
@@ -60,7 +62,7 @@ Reject malformed, oversized, version-mismatched, or semantically impossible repl
 
 ### Stress
 
-Use deterministic test-generated action sequences, with test seeds recorded; the game itself has no random generator in V1. An initial budget of 1,000 short legal/rejected-command sequences across the three scenarios is enough to look for invariant failures without turning testing into a count target. Minimise and preserve any failing trace.
+Use deterministic test-generated action sequences with seeds recorded. The game now generates seeded setups and tool offers, while resolution remains deterministic. The Stage 1 budget of 1,000 generated setups and 1,000 legal/rejected-command sessions has passed. Repeat or broaden only for concrete changes or remaining risks; preserve any failing trace.
 
 Stress rapid double-clicks, key-repeat commits, action/undo spam, help overlays, skip animation, background/foreground changes, and repeated new matches. Confirm only one round resolves per accepted commit revision.
 

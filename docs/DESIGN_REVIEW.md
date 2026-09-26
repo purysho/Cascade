@@ -1,5 +1,13 @@
 # Cascade — design review and current evidence
 
+## Stage 1 update
+
+The review below records the original Stage 0 evidence. It is preserved as design history. The v0.2 engine now reproduces its three traces, verifies solutions for every authored crisis, and implements seeded runs with six draftable tools. Current checks and unresolved limits are in [VERIFICATION.md](VERIFICATION.md).
+
+The public-information comparison did not find Emergency-first dominating the sample: four fixed-first approaches and an adaptive approach all won 27 cases, with different completion speeds. Repair-only survived to the deadline without achieving oversight. A backed isolation fixture averts a concrete collapse. These are mechanical results, not proof of balanced or enjoyable play.
+
+The key current uncertainty is whether a small city with several viable regulation orders produces interesting human decisions, and whether consumable drafts improve them. Complete the playable loop and observe first-time players before adding more systems.
+
 Reviewed 25 September 2026. Baseline rules/content version 0.1.0.
 
 ## What was actually checked

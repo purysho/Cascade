@@ -1,9 +1,9 @@
-# Cascade — game rules v0.1.0
+# Cascade — game rules v0.2.0
 
-Status: implementation specification, not a balanced or playable release.
-The numerical source is [rules-v0.1.json](../design/rules-v0.1.json).
+Status: implemented and checked in the headless engine; human balance and the playable interface remain untested.
+The numerical source is [rules-v0.2.json](../design/rules-v0.2.json).
 The three authored crises are in [scenarios-v0.1.json](../design/scenarios-v0.1.json).
-If prose and data disagree, fix the discrepancy before implementation.
+The original v0.1 rules and traces remain regression fixtures. The v0.2 extension adds seeded runs and consumable tools without changing the base action arithmetic.
 
 ## Premise and player goal
 
@@ -19,7 +19,8 @@ This is a fictional, deliberately compressed crisis. The machine does not need c
 - One city with four service nodes: Grid, Transit, Communications, Emergency.
 - At most 12 rounds; no real-time countdown. Target duration 8–12 minutes, unmeasured.
 - Three operational action points per round. Inspecting, opening help, and previewing are free.
-- Three authored crises; replay the same crisis or choose a different one.
+- Seeded crises plus three fixed authored cases; replay the same seed or choose a new one.
+- Seeded runs draft one of three emergency tools at rounds 1, 5, and 9. Six tool types; at most one use per round.
 - Complete game means entry, tutorial, decisions, animated consequences, endings, explanation, and replay.
 
 ## State and terminology
@@ -68,9 +69,9 @@ The player may undo the last uncommitted action for free. Undo rebuilds the open
 
 ## Autonomous orders
 
-Only the current round's orders and previously committed delayed consequences are revealed. Their affected services, benefits, damage, and permission requirements are explicit. Future rounds remain hidden during normal play.
+Only the current round's orders and previously committed delayed consequences are revealed. Their affected services, benefits, damage, and permission requirements are explicit. Future rounds and later tool offers remain hidden during normal play.
 
-An order executes only when every service in its permission list is autonomous. An isolated or regulated endpoint blocks the entire order, including its benefit, optimisation points, and newly scheduled damage. A service can block an incoming order as well as one it originates.
+An order executes only when every service in its permission list is autonomous and has no independent order veto active. An isolated, regulated, or vetoed endpoint blocks the entire order, including its benefit, optimisation points, and newly scheduled damage. A service can block an incoming order as well as one it originates.
 
 An order may still execute when an autonomous service has zero integrity: software authority and the service's physical condition are separate in this abstraction. The preview must apply this same rule.
 
@@ -105,7 +106,7 @@ This is one bounded wave per round. There is no recursive propagation within a r
 
 ## Exact round sequence
 
-1. **Brief:** reveal this round's ordered list of directives. Keep the full next-round schedule private. Show all due consequences.
+1. **Brief:** reveal this round's ordered directives and due consequences. Keep the future schedule private. In seeded runs, choose or decline one offered tool at the start of rounds 1, 5, and 9 before planning.
 2. **Plan:** allow legal actions, undo, inspection, and a complete forecast of committing the current plan.
 3. **Commit:** freeze this round's accepted actions; ignore repeated commits through revision validation.
 4. **Due consequences:** sum all integrity changes due now per service, apply and clamp each result to 0–6, then remove those entries. Regulation does not cancel them.
@@ -113,7 +114,7 @@ This is one bounded wave per round. There is no recursive propagation within a r
 6. **Dependency wave:** take one availability snapshot, determine all failing edges, and apply the summed damage simultaneously.
 7. **Public impact:** recompute effective availability, including support. Deficit is the sum, over four services, of max(0, 4 − availability). Recovery equals 2 only when deficit is zero, otherwise 0. New strain = max(0, old strain + direct strain + deficit − recovery).
 8. **Ending check:** resolve catastrophic loss first, then stable streak and victory, then the round-12 deadline, as specified below.
-9. **Next round:** if still active, remove all support, reset resupply usage and AP to 3, advance the round, and reveal its directives. Integrity, supplies, modes, backups, points, and pending consequences persist.
+9. **Next round:** if still active, remove support and independent vetoes, reset resupply/tool usage and AP to 3, advance the round, and reveal its directives. Integrity, supplies, modes, backups, inventory, points, and pending consequences persist. Terminal endings take priority over later drafts.
 
 Integrity is clamped only at the specified phase boundaries. Strain has no upper clamp before the ending check. A value of 18 is a real loss, not silently rewritten as 16.
 
@@ -141,9 +142,11 @@ No arbitrary surprise incident, hidden dice roll, or late exception can override
 
 ## Replay and meaningful variation
 
-Version 0.1 has three authored 12-round schedules rather than procedural generation. Starting integrity, supplies, strain, and the order of threats change the best opening and repair priorities. “Same crisis” preserves all of those values; “Other crisis” changes the scenario ID.
+Version 0.2 adds seeded starting conditions, twelve-round threat schedules, and three emergency-tool drafts. “Same crisis” preserves those values and offers; a new seed changes them. Three authored cases remain available without drafts for fixed practice and regression checks.
 
-The Overdrive worked path is a design witness, not the only intended solution. Other crises must receive verified winning traces before release. Procedural remix is a later addition only if the authored game is fun and stable.
+Every generated candidate must pass a legal winning route through the real engine before acceptance. Generation makes at most 24 attempts, then uses a verified authored fallback. These privileged routes establish initial solvability, not difficulty or recovery from every mistake. All three authored crises now have verified winning traces.
+
+See [Seeded runs](SEEDED_RUNS.md) for exact generation ranges, the six tools, draft restrictions, and replay compatibility. Tools cost no AP or supplies; use at most one per round. Their use can be undone during planning, but draft choices cannot be rerolled. Temporary support and order vetoes never count as lasting oversight.
 
 ## Design threats to check
 

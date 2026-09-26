@@ -1,0 +1,46 @@
+{
+  "stage": "headless engine",
+  "contentHash": "bc4ecfbe7cdbffdf",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "generation": {
+    "seedRange": "STRESS-0 through STRESS-999",
+    "checked": 1000,
+    "deterministic": 1000,
+    "verifiedWinningCertificates": 1000,
+    "distinctInitialStates": 572,
+    "distinctOpeningSchedules": 72,
+    "fallbacks": 1,
+    "fallbackSeeds": [
+      "STRESS-336"
+    ],
+    "meanAttempts": 3.324,
+    "maxAttempts": 24,
+    "certificateTemplates": {
+      "cut_off": 289,
+      "overdrive-original": 136,
+      "overdrive": 493,
+      "silent_dispatch": 82
+    },
+    "p95GenerationMs": 7.727
+  },
+  "randomPlay": {
+    "sessions": 1000,
+    "acceptedCommands": 13474,
+    "rejectedCommands": 26948,
+    "commits": 4039,
+    "replayChecks": 1000,
+    "outcomes": {
+      "collapse": 999,
+      "deadline": 1
+    }
+  },
+  "p95ForecastMs": 0.015,
+  "elapsedMs": 8486,
+  "limitations": [
+    "Finite deterministic sample; not exhaustive.",
+    "Recovery certificates use privileged scenario knowledge.",
+    "Timing measured in this Linux container, not the user's browser.",
+    "No rendered UI, storage adapter or human playtest."
+  ]
+}

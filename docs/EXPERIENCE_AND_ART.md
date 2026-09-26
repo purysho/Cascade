@@ -11,6 +11,8 @@ Opening copy:
 
 Buttons: Start tutorial, Start crisis, How to play, Settings. Resume appears only for a validated saved run. Each scenario card names its opening problem and shows starting services and supplies.
 
+Start crisis defaults to a new seeded run. Offer an optional seed entry and fixed authored practice cases. Show the seed for sharing/replay, without exposing the future schedule. At rounds 1, 5, and 9, show three tool cards and a clear decline option; explain one use per round. Inventory remains visible during planning.
+
 State the goal immediately: regulate all four services, keep every service at capacity 4 or more, clear delayed damage, and hold that condition for two rounds. Do not hide victory criteria behind story text.
 
 ## Main screen
@@ -65,6 +67,7 @@ A concise How to Play panel explains:
 - The single dependency wave and delayed physical consequences.
 - AI points versus public strain.
 - Forecast, undo, commit, same-crisis replay, and other-crisis replay.
+- Seed sharing, tool drafts, one consumable per round, and temporary vetoes versus permanent oversight.
 
 Context help opens the relevant rule beside the selected control. A downloadable START-HERE guide gives exact launch steps and save limitations for the final package.
 
