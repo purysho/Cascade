@@ -81,6 +81,14 @@ async function waitText(session, selector, expected) {
   }
   fail(`Expected ${selector} to read "${expected}", got "${await text(session, selector)}"`);
 }
+async function waitNonEmptyText(session, selector) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const value = await text(session, selector);
+    if (value.trim()) return value;
+    await wait(100);
+  }
+  fail(`Timed out waiting for visible text in ${selector}`);
+}
 async function waitEnabled(session, selector) {
   for (let attempt = 0; attempt < 50; attempt++) {
     const id = await waitElement(session, selector);
@@ -140,8 +148,7 @@ try {
 
   await click(session, "#commit");
   await waitText(session, "#round-value", "2/12");
-  const feedbackTitle = await text(session, "#resolution-feedback-title");
-  if (!feedbackTitle.trim()) fail("Round resolution feedback did not render a title.");
+  const feedbackTitle = await waitNonEmptyText(session, "#resolution-feedback-title");
   const eventText = await text(session, "#event-log");
   if (!eventText.trim()) fail("Causal event log remained empty after committing a round.");
 
