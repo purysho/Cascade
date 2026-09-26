@@ -121,9 +121,9 @@ try {
 
   await webdriver(`/session/${session}/url`, "POST", { url: "http://127.0.0.1:4173/" });
   await waitElement(session, "#start-generated");
-  await waitText(session, "#sound-toggle", "Sound: On");
-  await click(session, "#sound-toggle");
-  await waitText(session, "#sound-toggle", "Sound: Muted");
+  await waitText(session, "#start-sound-toggle", "Sound: On");
+  await click(session, "#start-sound-toggle");
+  await waitText(session, "#start-sound-toggle", "Sound: Muted");
   await setValue(session, "#seed-input", "BROWSER-SMOKE");
   await click(session, "#start-generated");
   await waitText(session, "#run-code", "BROWSER-SMOKE");
