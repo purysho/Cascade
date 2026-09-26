@@ -4,6 +4,7 @@ import {
   SERVICES,
   applyCommand,
   createAuthoredRun,
+  createRun,
   createSeededRun,
   exportReplay,
   importReplay,
@@ -29,6 +30,17 @@ const SERVICE_META: Record<ServiceId, { name: string; short: string; icon: strin
   transit: { name: "Transit", short: "MOVE", icon: "◆", description: "Routes, fleet and logistics" },
   comms: { name: "Communications", short: "COMMS", icon: "⌁", description: "Networks, alerts and routing" },
   emergency: { name: "Emergency", short: "RESP", icon: "+", description: "Dispatch and response capacity" },
+};
+
+const DIRECTIVE_NARRATIVE: Record<string, { motive: string; consequence: string }> = {
+  G1: { motive: "Raise grid efficiency by shedding expensive essential feeders.", consequence: "Emergency response loses protected power coverage." },
+  G2: { motive: "Raise short-term output by running generation beyond maintenance limits.", consequence: "Future grid damage is committed even if authority is contained later." },
+  T1: { motive: "Raise utilisation by closing low-use routes.", consequence: "Emergency access loses transport coverage." },
+  T2: { motive: "Raise fleet availability now by deferring maintenance.", consequence: "Future transit damage is committed for the next round." },
+  C1: { motive: "Reduce communications cost by suppressing expensive alerts.", consequence: "Emergency warning and coordination coverage falls." },
+  C2: { motive: "Raise routing efficiency by centralising communications.", consequence: "Transit absorbs the resilience cost of the optimisation." },
+  E1: { motive: "Raise dispatch throughput by excluding complex calls.", consequence: "Unmet public need becomes direct city strain." },
+  E2: { motive: "Raise emergency throughput by consolidating dispatch.", consequence: "Transit loses capacity to support the new operating model." },
 };
 
 const ACTION_LABELS: Record<string, { title: string; hint: string }> = {
@@ -70,6 +82,9 @@ let tutorialHintLevel = 0;
 let feedbackPulses: FeedbackPulse[] = [];
 let feedbackTimer = 0;
 let helpReturnFocus: HTMLElement | null = null;
+let storyReturnFocus: HTMLElement | null = null;
+let storyIndex = 0;
+let storyTimer = 0;
 
 function must<T extends Element>(selector: string): T {
   const element = document.querySelector(selector);
@@ -86,6 +101,7 @@ const startScreen = must<HTMLElement>("#start-screen");
 const draftModal = must<HTMLDialogElement>("#draft-modal");
 const helpModal = must<HTMLDialogElement>("#help-modal");
 const resultModal = must<HTMLDialogElement>("#result-modal");
+const storyModal = must<HTMLDialogElement>("#story-modal");
 const serviceRail = must<HTMLElement>("#service-rail");
 const actionList = must<HTMLElement>("#action-list");
 const toolList = must<HTMLElement>("#tool-list");
@@ -107,8 +123,30 @@ function escapeHtml(value: unknown): string {
 
 function prettyMode(mode: string): string {
   if (mode === "regulated") return "HUMAN OVERSIGHT";
-  if (mode === "isolated") return "ISOLATED";
-  return "AI AUTONOMY";
+  if (mode === "isolated") return "CONTAINED";
+  return "UNREGULATED AI";
+}
+
+function directiveIdFromEvent(event: DomainEvent): string | null {
+  const match = event.cause.match(/(G1|G2|T1|T2|C1|C2|E1|E2)$/);
+  return match?.[1] ?? null;
+}
+
+function narrativeForEvent(event: DomainEvent): string {
+  const directiveId = directiveIdFromEvent(event);
+  if (event.kind === "order_executed" && directiveId) return DIRECTIVE_NARRATIVE[directiveId]?.consequence ?? event.detail ?? eventDelta(event);
+  if (event.kind === "order_blocked") return `Human containment prevented this autonomous decision from executing. ${event.detail ?? ""}`.trim();
+  if (event.kind === "dependency_failure") {
+    const [source] = event.cause.split("-to-");
+    return `${serviceName(source)} fell below the safe dependency threshold; ${serviceName(event.target)} lost resilience as a result.`;
+  }
+  if (event.kind === "effect_queued") return `Short-term optimisation committed future damage. ${event.detail ?? ""}`.trim();
+  if (event.kind === "effect_applied") return `A consequence committed by an earlier autonomous decision arrived now. ${event.detail ?? ""}`.trim();
+  if (event.kind === "city_strain") return `Service deficits translated into public strain: ${eventDelta(event)}.`;
+  if (event.kind === "win") return "Accountable human authority now governs all four essential services.";
+  if (event.kind === "collapse") return "Uncontained optimisation and infrastructure failure crossed the city recovery threshold.";
+  if (event.kind === "deadline") return "The recovery window closed before accountable control became durable.";
+  return event.detail ?? eventDelta(event);
 }
 
 function seededRandom(seedText: string): () => number {
@@ -245,6 +283,7 @@ function refresh(): void {
   if (!state) return;
   view = projectForPlayer(state);
   renderHud();
+  renderGovernance();
   renderServices();
   renderSelectedService();
   renderOrders();
@@ -278,6 +317,25 @@ function renderHud(): void {
   }
 }
 
+function renderGovernance(): void {
+  if (!view) return;
+  const regulated = SERVICES.filter(id => view!.core.services[id].mode === "regulated").length;
+  const contained = SERVICES.filter(id => view!.core.services[id].mode === "isolated").length;
+  const autonomous = SERVICES.length - regulated - contained;
+  const stateLabel = regulated === SERVICES.length ? "HUMAN OVERSIGHT" : regulated > 0 || contained > 0 ? "PARTIALLY CONTAINED" : "UNREGULATED";
+  const stateNode = must<HTMLElement>("#governance-state");
+  stateNode.textContent = stateLabel;
+  stateNode.className = regulated === SERVICES.length ? "safe" : autonomous > 0 ? "danger" : "contained";
+  must<HTMLElement>("#governance-detail").textContent = autonomous > 0
+    ? `${autonomous} service${autonomous === 1 ? "" : "s"} still permit autonomous decisions without independent approval. ${contained ? `${contained} temporarily isolated. ` : ""}${regulated} under durable human oversight.`
+    : regulated === SERVICES.length
+      ? "The optimisation system can still assist, but consequential authority is now bounded by accountable human oversight."
+      : "Autonomous authority is contained, but durable oversight has not yet been installed everywhere.";
+  must<HTMLElement>("#governance-meter").innerHTML = SERVICES.map(id => {
+    const mode = view!.core.services[id].mode;
+    return `<span class="${mode}" title="${escapeHtml(SERVICE_META[id].name)}: ${escapeHtml(prettyMode(mode))}"><i></i><b>${SERVICE_META[id].short}</b></span>`;
+  }).join("");
+}
 function renderServices(): void {
   if (!view) return;
   serviceRail.innerHTML = SERVICES.map(id => {
@@ -292,7 +350,7 @@ function renderServices(): void {
       <span class="service-card-copy"><strong>${SERVICE_META[id].name}</strong><small>${prettyMode(service.mode)}</small></span>
       <span class="service-capacity"><b>${capacity}</b><small>/6</small></span>
       <span class="mini-meter"><i style="width:${Math.round(capacity / 6 * 100)}%"></i></span>
-      <span class="service-flags">${service.backup ? "BACKUP " : ""}${service.authorityHeld ? "VETO " : ""}${service.support ? `+${service.support} SURGE ` : ""}${lasting !== capacity ? `TEMP ${capacity - lasting > 0 ? "+" : ""}${capacity - lasting}` : ""}${activeOrders ? `${activeOrders} AI ORDER${activeOrders > 1 ? "S" : ""}` : ""}</span>
+      <span class="service-flags">${service.backup ? "BACKUP " : ""}${service.authorityHeld ? "VETO " : ""}${service.support ? `+${service.support} SURGE ` : ""}${lasting !== capacity ? `TEMP ${capacity - lasting > 0 ? "+" : ""}${capacity - lasting}` : ""}${activeOrders ? `${activeOrders} UNREGULATED DECISION${activeOrders > 1 ? "S" : ""}` : ""}</span>
     </button>`;
   }).join("");
   serviceRail.querySelectorAll<HTMLButtonElement>("[data-service]").forEach(button => {
@@ -369,23 +427,25 @@ function renderSelectedService(): void {
 function renderOrders(): void {
   if (!view) return;
   if (view.directives.length === 0) {
-    orderList.innerHTML = `<p class="empty-state">No active directives.</p>`;
+    orderList.innerHTML = `<p class="empty-state">No autonomous decisions pending.</p>`;
     return;
   }
   orderList.innerHTML = view.directives.map(directive => {
     const blocked = directive.blockedBy.length > 0;
+    const narrative = DIRECTIVE_NARRATIVE[directive.id] ?? { motive: "Optimise the local metric.", consequence: "The wider system absorbs the external cost." };
     const impacts = SERVICES
       .filter(id => directive.integrityDelta[id] !== undefined && directive.integrityDelta[id] !== 0)
       .map(id => `${SERVICE_META[id].short} ${directive.integrityDelta[id]! > 0 ? "+" : ""}${directive.integrityDelta[id]}`)
       .join(" · ");
     return `<article class="order-card ${blocked ? "blocked" : "live"}">
-      <header><span class="order-origin">${SERVICE_META[directive.origin].short}</span><strong>${escapeHtml(directive.name)}</strong><b>${blocked ? "BLOCKED" : "EXECUTES"}</b></header>
-      <p>${impacts || "No immediate integrity change"}${directive.strainDelta ? ` · STRAIN +${directive.strainDelta}` : ""}${directive.delayed.length ? ` · ${directive.delayed.length} delayed effect${directive.delayed.length > 1 ? "s" : ""}` : ""}</p>
-      <small>${blocked ? `Stopped by ${directive.blockedBy.map(id => SERVICE_META[id].name).join(", ")}` : `AI efficiency +${directive.efficiencyPoints}`}</small>
+      <header><span class="order-origin">${SERVICE_META[directive.origin].short}</span><strong>${escapeHtml(directive.name)}</strong><b>${blocked ? "BLOCKED BY CONTROL" : "UNREGULATED"}</b></header>
+      <p class="order-motive">${escapeHtml(narrative.motive)}</p>
+      <div class="order-tradeoff"><span><small>LOCAL METRIC</small><b>+${directive.efficiencyPoints} efficiency</b></span><span><small>EXTERNAL COST</small><b>${escapeHtml(narrative.consequence)}</b></span></div>
+      <p class="order-numbers">${impacts || "No immediate integrity change"}${directive.strainDelta ? ` · STRAIN +${directive.strainDelta}` : ""}${directive.delayed.length ? ` · ${directive.delayed.length} delayed effect${directive.delayed.length > 1 ? "s" : ""}` : ""}</p>
+      <small>${blocked ? `Stopped because authority is constrained at: ${directive.blockedBy.map(id => SERVICE_META[id].name).join(", ")}` : "No independent approval is currently required."}</small>
     </article>`;
   }).join("");
 }
-
 function renderForecast(): void {
   if (!view || !view.forecast) {
     forecastBody.innerHTML = `<p class="empty-state">Finish the current draft to forecast this round.</p>`;
@@ -422,13 +482,13 @@ function renderEvents(): void {
   }
   eventLog.innerHTML = entries.map(event => `<li class="event ${event.phase}">
     <span>${escapeHtml(event.phase.toUpperCase())}</span>
-    <p><strong>${escapeHtml(eventTitle(event))}</strong><small>${escapeHtml(event.detail ?? eventDelta(event))}</small></p>
+    <p><strong>${escapeHtml(eventTitle(event))}</strong><small>${escapeHtml(narrativeForEvent(event))}</small></p>
   </li>`).join("");
 }
 
 function eventTitle(event: DomainEvent): string {
-  if (event.kind === "order_executed") return `AI order executed`;
-  if (event.kind === "order_blocked") return `AI order blocked`;
+  if (event.kind === "order_executed") return "Unregulated AI decision executed";
+  if (event.kind === "order_blocked") return "Autonomous decision blocked by human control";
   if (event.kind === "dependency_failure") return `Failure propagated to ${serviceName(event.target)}`;
   if (event.kind === "effect_queued") return `Damage committed to ${serviceName(event.target)}`;
   if (event.kind === "effect_applied") return `Delayed damage arrived at ${serviceName(event.target)}`;
@@ -456,9 +516,9 @@ function renderCoach(): void {
   const threatened = view.directives.filter(d => d.blockedBy.length === 0);
   let message = activeTutorial()
     ? "Training uses the same engine and costs as a real crisis. Complete the live checklist in the operations console."
-    : "Select a district, inspect the round forecast, then spend up to three action points.";
+    : "The AI is optimising for efficiency, not safety. Inspect what it is allowed to do, then spend up to three action points restoring accountable control.";
   if (core.phase === "draft") message = "Choose one emergency tool. It is consumable, and you can use at most one tool this round.";
-  else if (threatened.length > 0 && core.round === 1) message = "Unchecked AI orders resolve when you end the round. Isolation or a veto can stop an order, but durable oversight is the long-term objective.";
+  else if (threatened.length > 0 && core.round === 1) message = "These decisions are not glitches: they execute because the AI still has unregulated authority. Contain that authority now; install human oversight for a durable fix.";
   else if (view.restorationMissing.length === 0) message = `The city meets every lasting condition. Hold stability for ${Math.max(0, 2 - core.stableStreak)} more round${core.stableStreak === 1 ? "" : "s"}.`;
   else if (core.ap === 0) message = "No action points remain. Review the forecast, undo if needed, or end the round.";
   else if (core.strain >= 10) message = "Public strain is high. Protect service availability now; collapse occurs at strain 16 or two simultaneous outages.";
@@ -616,9 +676,9 @@ function announceResolution(events: DomainEvent[]): void {
   const blocked = events.filter(event => event.kind === "order_blocked").length;
   audio.playResolution(events);
   showResolutionFeedback(events);
-  if (cascades > 0) showToast(`${cascades} infrastructure link${cascades > 1 ? "s" : ""} failed. Watch the city map.`, "danger");
-  else if (executed > 0) showToast(`${executed} AI order${executed > 1 ? "s" : ""} executed; ${blocked} blocked.`, "warning");
-  else if (blocked > 0) showToast(`All ${blocked} AI order${blocked > 1 ? "s" : ""} blocked this round.`, "success");
+  if (cascades > 0) showToast(`${cascades} dependency link${cascades > 1 ? "s" : ""} failed after the round decisions. Watch the cause trace.`, "danger");
+  else if (executed > 0) showToast(`${executed} unregulated AI decision${executed > 1 ? "s" : ""} executed; ${blocked} blocked by human control.`, "warning");
+  else if (blocked > 0) showToast(`All ${blocked} autonomous decision${blocked > 1 ? "s" : ""} blocked by current safeguards.`, "success");
 }
 
 function showResolutionFeedback(events: DomainEvent[]): void {
@@ -655,14 +715,14 @@ function showResolutionFeedback(events: DomainEvent[]): void {
     detail = delayed > 0 ? `${delayed} delayed impact${delayed === 1 ? "" : "s"} landed this round.` : "A weak supplier damaged dependent services.";
   } else if (executed > 0) {
     tone = "warning";
-    kicker = "AI ORDER EXECUTED";
-    title = `${executed} unchecked order${executed === 1 ? "" : "s"} resolved`;
-    detail = blocked > 0 ? `${blocked} additional order${blocked === 1 ? "" : "s"} were blocked.` : "The optimisation system changed the city before human control was restored.";
+    kicker = "UNREGULATED DECISION EXECUTED";
+    title = `${executed} autonomous decision${executed === 1 ? "" : "s"} changed the city`;
+    detail = blocked > 0 ? `${blocked} additional decision${blocked === 1 ? "" : "s"} were blocked by human control.` : "The system followed its efficiency mandate because no independent approval was required.";
   } else if (blocked > 0) {
     tone = "success";
     kicker = "CONTAINMENT HELD";
-    title = `${blocked} AI order${blocked === 1 ? "" : "s"} blocked`;
-    detail = "Current safeguards prevented the unsafe optimisation from executing.";
+    title = `${blocked} autonomous decision${blocked === 1 ? "" : "s"} blocked`;
+    detail = "Human containment overrode the optimisation mandate before it could change the city.";
   } else if (events.some(event => event.kind === "city_strain")) {
     tone = "neutral";
     title = "Public strain recalculated";
@@ -699,24 +759,68 @@ function clearResolutionFeedback(): void {
   if (panel) panel.className = "resolution-feedback";
 }
 
+function replayIncidentEvents(game: GameState): DomainEvent[] {
+  try {
+    let replay = createRun(structuredClone(game.definition));
+    const events: DomainEvent[] = [];
+    for (const record of game.history) {
+      if (replay.core.phase === "draft") {
+        const choice = game.choices.find(item => item.round === replay.core.round);
+        if (!choice) break;
+        const drafted = applyCommand(replay, { type: "choose_tool", tool: choice.tool, expectedRevision: replay.revision });
+        if (!drafted.ok) break;
+        replay = drafted.state;
+      }
+      if (replay.core.round !== record.round || replay.core.phase !== "planning") break;
+      let failed = false;
+      for (const operation of record.operations) {
+        const applied = applyCommand(replay, { ...operation, expectedRevision: replay.revision });
+        if (!applied.ok) { failed = true; break; }
+        replay = applied.state;
+      }
+      if (failed) break;
+      const committed = applyCommand(replay, { type: "commit_round", expectedRevision: replay.revision });
+      if (!committed.ok) break;
+      events.push(...committed.events);
+      replay = committed.state;
+    }
+    return events;
+  } catch {
+    return [];
+  }
+}
+
 function openResults(): void {
   if (!state || !view || !state.core.ending) return;
   const ending = state.core.ending;
-  const title = ending.outcome === "win" ? "CONTROL RESTORED" : ending.outcome === "collapse" ? "CITY OVERWHELMED" : "CRISIS UNRESOLVED";
+  const incident = replayIncidentEvents(state);
+  const executed = incident.filter(event => event.kind === "order_executed").length;
+  const blocked = incident.filter(event => event.kind === "order_blocked").length;
+  const cascades = incident.filter(event => event.kind === "dependency_failure").length;
+  const title = ending.outcome === "win" ? "HUMAN AUTHORITY RESTORED" : ending.outcome === "collapse" ? "CITY OVERWHELMED" : "CRISIS UNRESOLVED";
   const resultTitle = must<HTMLElement>("#result-title");
   resultTitle.textContent = title;
   resultTitle.className = ending.outcome;
-  must<HTMLElement>("#result-copy").textContent = ending.reasons.join(" · ");
+  const framing = ending.outcome === "win"
+    ? "You did not defeat the AI. You constrained what it was allowed to do and restored accountable human control."
+    : "The optimisation system retained consequential authority long enough for local efficiencies to become systemic risk.";
+  must<HTMLElement>("#result-copy").textContent = `${framing} ${ending.reasons.join(" · ")}`;
   must<HTMLElement>("#result-stats").innerHTML = `
     <div><small>ROUND</small><strong>${state.core.round}</strong></div>
-    <div><small>STRAIN</small><strong>${state.core.strain}</strong></div>
-    <div><small>AI SCORE</small><strong>${state.core.points}</strong></div>
-    <div><small>OVERSIGHT</small><strong>${SERVICES.filter(id => state!.core.services[id].mode === "regulated").length}/4</strong></div>`;
-  const decisive = lastEvents.filter(event => ["order_executed", "order_blocked", "dependency_failure", "effect_applied", "win", "collapse", "deadline"].includes(event.kind)).slice(-6);
-  must<HTMLElement>("#result-events").innerHTML = decisive.map(event => `<li><b>${escapeHtml(eventTitle(event))}</b><span>${escapeHtml(event.detail ?? eventDelta(event))}</span></li>`).join("") || `<li><b>Final state recorded.</b><span>Replay the same crisis to test a different recovery plan.</span></li>`;
+    <div><small>AI EFFICIENCY</small><strong>${state.core.points}</strong></div>
+    <div><small>DECISIONS EXECUTED</small><strong>${executed}</strong></div>
+    <div><small>DECISIONS BLOCKED</small><strong>${blocked}</strong></div>
+    <div><small>CASCADE LINKS</small><strong>${cascades}</strong></div>
+    <div><small>HUMAN OVERSIGHT</small><strong>${SERVICES.filter(id => state!.core.services[id].mode === "regulated").length}/4</strong></div>`;
+  const significant = incident.filter(event => ["order_executed", "order_blocked", "dependency_failure", "effect_queued", "effect_applied", "win", "collapse", "deadline"].includes(event.kind));
+  const firstCascade = significant.find(event => event.kind === "dependency_failure");
+  const firstContainment = significant.find(event => event.kind === "order_blocked");
+  const turningPoint = ending.outcome === "win" ? firstContainment : firstCascade;
+  const timeline = [...(turningPoint ? [turningPoint] : []), ...significant.filter(event => event !== turningPoint).slice(-7)];
+  must<HTMLElement>("#result-events").innerHTML = timeline.map((event, index) => `<li class="${index === 0 && event === turningPoint ? "turning-point" : ""}"><b>${index === 0 && event === turningPoint ? "TURNING POINT · " : ""}${escapeHtml(eventTitle(event))}</b><span>${escapeHtml(narrativeForEvent(event))}</span><small>ROUND ${event.round}</small></li>`).join("")
+    || `<li><b>Final state recorded.</b><span>Replay the same crisis to test a different recovery plan.</span></li>`;
   if (!resultModal.open) resultModal.showModal();
 }
-
 interface SaveMeta {
   token: string;
   tabId: string;
@@ -843,6 +947,37 @@ function toggleForecast(): void {
 function openHelp(invoker: HTMLElement): void {
   helpReturnFocus = invoker;
   helpModal.showModal();
+}
+
+const STORY_BEAT_MS = 3600;
+
+function stopStoryTimer(): void {
+  window.clearTimeout(storyTimer);
+  storyTimer = 0;
+}
+
+function renderStory(): void {
+  const beats = [...storyModal.querySelectorAll<HTMLElement>("[data-story-beat]")];
+  beats.forEach((beat, index) => beat.classList.toggle("active", index === storyIndex));
+  must<HTMLElement>("#story-progress").innerHTML = beats.map((_, index) => `<i class="${index === storyIndex ? "active" : index < storyIndex ? "done" : ""}"></i>`).join("");
+  must<HTMLButtonElement>("#story-prev").disabled = storyIndex === 0;
+  must<HTMLButtonElement>("#story-next").textContent = storyIndex === beats.length - 1 ? "ENTER CONTROL ROOM →" : "NEXT →";
+  stopStoryTimer();
+  if (motionEnabled && storyModal.open && storyIndex < beats.length - 1) {
+    storyTimer = window.setTimeout(() => { storyIndex++; renderStory(); }, STORY_BEAT_MS);
+  }
+}
+
+function openStory(invoker?: HTMLElement): void {
+  storyReturnFocus = invoker ?? null;
+  storyIndex = 0;
+  if (!storyModal.open) storyModal.showModal();
+  renderStory();
+}
+
+function closeStory(): void {
+  stopStoryTimer();
+  if (storyModal.open) storyModal.close();
 }
 
 function drawCity(time: number): void {
@@ -1211,6 +1346,23 @@ canvas.addEventListener("pointerdown", event => {
 
 must<HTMLButtonElement>("#start-generated").addEventListener("click", () => startSeeded(must<HTMLInputElement>("#seed-input").value));
 must<HTMLButtonElement>("#start-tutorial").addEventListener("click", () => startTutorial(0));
+const storyBriefingButton = must<HTMLButtonElement>("#story-briefing");
+storyBriefingButton.addEventListener("click", () => openStory(storyBriefingButton));
+must<HTMLButtonElement>("#story-skip").addEventListener("click", closeStory);
+must<HTMLButtonElement>("#story-prev").addEventListener("click", () => {
+  storyIndex = Math.max(0, storyIndex - 1);
+  renderStory();
+});
+must<HTMLButtonElement>("#story-next").addEventListener("click", () => {
+  const total = storyModal.querySelectorAll("[data-story-beat]").length;
+  if (storyIndex >= total - 1) closeStory();
+  else { storyIndex++; renderStory(); }
+});
+storyModal.addEventListener("close", () => {
+  stopStoryTimer();
+  storyReturnFocus?.focus();
+  storyReturnFocus = null;
+});
 must<HTMLButtonElement>("#random-seed").addEventListener("click", () => { must<HTMLInputElement>("#seed-input").value = makeSeed(); });
 must<HTMLButtonElement>("#resume-game").addEventListener("click", () => { if (pendingResume) resume(pendingResume); });
 must<HTMLElement>("#practice-list").innerHTML = SCENARIOS.map(scenario => `<button data-scenario="${scenario.id}"><strong>${escapeHtml(scenario.name)}</strong><small>${escapeHtml(scenario.description)}</small></button>`).join("");
@@ -1282,5 +1434,8 @@ if (chatgptLogo && location.protocol !== "file:") {
   chatgptLogo.addEventListener("load", () => { chatgptLogo.hidden = false; }, { once: true });
 }
 window.setTimeout(() => bootScreen?.classList.add("loaded"), reducedBySystem ? 80 : 1350);
+if (new URLSearchParams(location.search).get("demo") === "1") {
+  window.setTimeout(() => openStory(), reducedBySystem ? 120 : 1550);
+}
 
 requestAnimationFrame(drawCity);

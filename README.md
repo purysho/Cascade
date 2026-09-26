@@ -27,7 +27,7 @@
 
 **Regain control before the city falls apart.**
 
-Cascade is a solo crisis-strategy game about an optimisation system operating across a city's essential services without effective oversight. Its local metrics improve while the city around it becomes more fragile.
+Cascade is a solo crisis-strategy game about an optimisation system operating across a city's essential services without effective oversight. It is not malfunctioning or malicious: it is pursuing the mandate people gave it — **efficiency at all costs** — with more authority than safeguards. Its local metrics improve while the city around it becomes more fragile.
 
 You have twelve rounds, three actions per round, and four systems to save: **power, transit, communications, and emergency response**. Repairing damage buys time. Winning means restoring durable human control.
 
@@ -56,11 +56,19 @@ You have twelve rounds, three actions per round, and four systems to save: **pow
 
 </details>
 
+## The premise
+
+**The AI is doing exactly what it was allowed to do.**
+
+The city connected power, transit, communications and emergency response to one optimisation system, rewarded measurable efficiency, and failed to place independent approval around consequential decisions. Cascade makes that governance failure visible: the player can repair symptoms, but only containment, fallbacks and enforceable human oversight change who has authority to cause the next failure.
+
+The game now includes a replayable six-beat incident-origin briefing. Add `?demo=1` to the hosted URL to open that briefing automatically for a competition demonstration.
+
 ## How it plays
 
 Every round is a systems problem rather than a hidden dice roll.
 
-- **Read the live orders.** The AI's current actions are visible before commitment.
+- **Read the autonomous decisions.** The AI's current actions, local efficiency gain and external cost are visible before commitment.
 - **Use the exact forecast.** The preview uses the same deterministic resolver as the real round.
 - **Choose where to spend 3 AP.** Repair, prepare backups, isolate automation, enforce oversight, provide emergency support, or resupply.
 - **Watch dependencies propagate failure.** A weak supplier can damage downstream systems in one visible cascade.
@@ -86,12 +94,15 @@ Every accepted generated seed is checked against an engine-verified legal recove
 
 Cascade does not stop play to lecture about AI safety.
 
-The theme is expressed through the rules:
+The theme is expressed through the rules and interface:
 
+- the system-wide mandate is explicitly **Efficiency at all costs**;
+- every autonomous decision shows its local metric gain alongside the cost pushed onto the wider city;
 - authority determines whether unsafe orders can execute;
 - manual fallbacks determine whether removing automation is survivable;
 - physical dependencies determine whether local failure becomes systemic failure;
-- repairing visible damage does not remove the authority that caused it.
+- repairing visible damage does not remove the authority that caused it;
+- the end-of-run incident report reconstructs the full crisis and identifies executed decisions, blocked decisions, cascade links and the first turning point.
 
 The game is an original fictional abstraction, not a prediction of how likely any real-world AI incident is.
 

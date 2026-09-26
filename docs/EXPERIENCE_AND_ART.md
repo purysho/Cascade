@@ -1,13 +1,15 @@
 # Cascade — experience, tutorial, and art plan
 
-Status: specification. No graphics, tutorial, audio, or rendered application have been produced.
+Status: implemented experience baseline with living-city graphics, guided tutorial, procedural audio, deterministic consequence feedback, governance framing and a replayable incident-origin briefing. Human playtest evidence remains outstanding.
 
 ## First-time entry
 
 Title: Cascade. Tagline: “Regain control before the city falls apart.”
 
 Opening copy:
-“The city gave one AI control over essential services. It can cut coverage and defer maintenance without independent approval. Its efficiency score is rising. The city is failing. You have twelve rounds to restore essential services and enforce human oversight.”
+“The city gave one optimisation system authority over essential services. It was told to be efficient at all costs. Its numbers are improving. The city is failing.”
+
+A replayable six-beat story briefing explains the promise, incentive, missing oversight, removal of redundancy, resulting cascade, and the player's goal of restoring accountable authority. Normal play never requires watching it; the hosted demo can auto-open it with `?demo=1`.
 
 Buttons: Start tutorial, Start crisis, How to play, Settings. Resume appears only for a validated saved run. Each scenario card names its opening problem and shows starting services and supplies.
 
@@ -19,11 +21,11 @@ State the goal immediately: regulate all four services, keep every service at ca
 
 The illustrated city occupies roughly 60% of the desktop composition. Four large service locations visibly connect through power, routes, and communications. A selected location exposes its service panel.
 
-Top strip: round, remaining AP, supplies, city strain. A compact restoration checklist shows the four oversight locks and stable streak. The AI's optimisation points appear as a clearly labelled secondary measure.
+Top strip: round, remaining AP, supplies, city strain, stable streak, and **AI efficiency** as the optimiser's own secondary metric. The control console contains a governance panel showing the global mandate **Efficiency at all costs**, current authority state, and each service as unregulated, contained, or under human oversight.
 
 Side panel: selected service, true integrity and effective availability, control mode, backup status, available actions, costs, and disabled reasons.
 
-Bottom strip: current unsafe orders and already committed damage. A forecast drawer explains what will happen if the round is committed, including which links carry failures. End Round, Undo, Help, Settings, and Replay recap are consistently placed.
+Autonomous-decision cards pair each local efficiency gain with the external cost pushed onto another service or the public. The bottom cause trace narrates real engine events rather than generic flavour text. The end-of-run incident report reconstructs the completed run from recorded operations and identifies executed decisions, blocked decisions, cascade links and a turning point. A forecast drawer explains what will happen if the round is committed, including which links carry failures. End Round, Undo, Help, Settings, and Replay recap are consistently placed.
 
 A fictional resident or operator line may make consequences personal, but must be selected from actual events. For example, delayed emergency response text can only appear when Emergency availability falls. Do not show an unrelated tragedy to increase drama.
 

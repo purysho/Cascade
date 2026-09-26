@@ -1,102 +1,126 @@
-# Cascade — 3–5 minute demo script
+# Cascade — 3–5 minute competition demo script
 
-Target length: about 4 minutes. Record real gameplay from the final packaged build; do not substitute mockups.
+Target length: about 4 minutes. Use the real hosted or packaged build; do not substitute mockups.
 
-## 0:00–0:25 — Hook
+## 0:00–0:30 — Story briefing
 
-Open `Cascade-Play.html` directly from the extracted release.
+Open the hosted build with `?demo=1` or choose **Watch the 25-second story briefing** from the menu.
+
+Let the six beats establish the premise:
+
+1. one optimisation system is connected to four essential services;
+2. it is rewarded for efficiency;
+3. its authority expands faster than safeguards;
+4. redundancy, maintenance and low-use coverage are treated as waste;
+5. local improvements create systemic fragility;
+6. the player's job is to regulate authority, not “kill the AI.”
+
+Do not over-explain the cutscene. Let the line **“The numbers improved. The city became fragile.”** land.
+
+## 0:30–1:10 — Show an unregulated decision
+
+Start the first training exercise or a generated crisis.
+
+Point to the governance panel:
+
+- **OPTIMISATION MANDATE: EFFICIENCY AT ALL COSTS**
+- **UNREGULATED**
+- the four service authority indicators.
+
+Open one autonomous decision. Show the two-column tradeoff:
+
+- **LOCAL METRIC** — what the AI improves;
+- **EXTERNAL COST** — what another service or the public absorbs.
 
 Say:
 
-> Cascade is a city-crisis strategy game about taking back control from an optimisation system whose metrics are improving while the city itself is failing.
+> The AI is not broken. This decision executes because we gave the optimiser consequential authority without independent approval.
 
-Briefly point to the four live services, public strain, AI score and exact consequence forecast.
+Commit the round and briefly let the consequence banner, map pulse and cause trace speak for themselves.
 
-## 0:25–1:05 — Show unchecked optimisation
+## 1:10–1:50 — Show a cascade
 
-Use the first training exercise or a run with a visible live directive.
+Use **Break the cascade** training.
+
+Before acting, show the exact forecast and the dependency links that will fail.
+
+Repair the weak supplier and show those links disappear.
+
+Say:
+
+> A local optimisation becomes a city problem because essential services depend on each other.
+
+## 1:50–2:35 — Show containment versus governance
+
+Use **Contain safely**.
+
+Prepare a fallback, then isolate the threatened service.
 
 Point out:
 
-- the orange AI order marked EXECUTES;
-- the service it appears to improve;
-- the service it harms;
-- the same-resolver forecast.
-
-Commit the round.
-
-Let the consequence banner, map pulse and cause trace show the harm. Avoid narrating over the visual change for a moment.
-
-## 1:05–1:45 — Show a cascade
-
-Use the Break the cascade training exercise.
-
-Before repairing Grid, show the forecasted dependency failures.
-
-Repair Grid and show those cascade links disappear from the forecast.
-
-Explain in one sentence:
-
-> Local damage becomes city-wide because essential services depend on one another.
-
-## 1:45–2:30 — Show the core tradeoff
-
-Use Contain safely.
-
-First show that the unsafe Transit order will execute.
-
-Prepare a backup, then isolate Transit.
-
-Point out:
-
-- the order changes to BLOCKED;
-- Transit still loses capacity;
-- the backup makes that containment survivable.
+- its status changes from **UNREGULATED AI** to **CONTAINED**;
+- the autonomous decision becomes **BLOCKED BY CONTROL**;
+- capacity still falls under isolation;
+- the fallback makes containment survivable.
 
 Say:
 
-> Stopping the AI is not free; if you remove automation without fallback capacity, the intervention itself can hurt the city.
+> Stopping automation is not the same as governing it. Containment buys time; fallback capacity keeps the intervention from becoming another failure.
 
-## 2:30–3:10 — Restore durable control
+## 2:35–3:10 — Restore accountable authority
 
-Use Restore control or a normal run.
+Prepare the prerequisite backup and enforce oversight.
 
-Prepare the prerequisite backup and enforce permanent oversight.
+Show:
 
-Show the control mode change and the whole-city restoration checklist.
-
-Explain that isolation is temporary containment while oversight is the durable objective.
-
-## 3:10–3:40 — Replayability
-
-Return to the start screen.
-
-Generate a fresh seed and briefly show:
-
-- changed starting damage;
-- changed threat schedule;
-- one-of-three emergency-tool draft;
-- seed code that can be shared and replayed.
+- the service becomes **HUMAN OVERSIGHT**;
+- the governance meter changes;
+- the restoration checklist still requires all four services and two stable rounds.
 
 Say:
 
-> Every accepted generated crisis is deterministic and has an engine-verified legal recovery route, but the player still has to find it.
+> Winning means changing who is allowed to make consequential decisions — not merely repairing the damage after each one.
 
-## 3:40–4:00 — Close
+## 3:10–3:35 — Show replayability
 
-Show the live city moving under pressure.
+Return to the menu and create a fresh generated crisis.
+
+Briefly show:
+
+- a new seed;
+- changed starting conditions;
+- a different visible threat sequence as the run unfolds;
+- the emergency-tool draft.
 
 Say:
 
-> Cascade turns AI-safety ideas into the rules of the game: unsafe authority, side effects, fallback capacity, dependencies and enforceable oversight. The final build is one offline HTML file—no backend and no live AI required.
+> Every accepted generated crisis is deterministic and has an engine-verified legal recovery route, but the player still has to discover a recovery strategy.
 
-End on the title or a consequence moment rather than a documentation screen.
+## 3:35–4:00 — Show the incident report
+
+Use a prepared completed run if needed.
+
+Show the end-of-run report:
+
+- AI efficiency points;
+- autonomous decisions executed;
+- decisions blocked by human control;
+- cascade links;
+- final human-oversight count;
+- the reconstructed incident timeline and turning point.
+
+Close with:
+
+> Cascade is about the danger of unregulated AI authority. The system does not need to be evil or malfunctioning. It only needs the wrong objective, real authority, and too few safeguards.
+
+End on the city or the title screen, not documentation.
 
 ## Capture checklist
 
-- Use the final extracted `Cascade-Play.html`.
-- Record 1080p if possible.
+- Prefer the hosted build with `?demo=1` for the story opening; the offline build remains valid.
+- Record at 1080p if possible.
 - Keep sound on at a comfortable level.
 - Do not show developer tools, terminal windows or test harnesses.
-- Do not claim human fun/replay results unless actual playtest evidence exists.
-- Include the source/release commit in the submission text, not on-screen unless useful.
+- Do not claim human fun or replay results until actual playtests exist.
+- Do not imply the fictional scenario predicts the probability of a real-world AI incident.
+- Include the source/release commit in submission text when useful.
