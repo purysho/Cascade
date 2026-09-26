@@ -129,6 +129,11 @@ try {
 
   await webdriver(`/session/${session}/url`, "POST", { url: "http://127.0.0.1:4173/" });
   await waitElement(session, "#start-generated");
+  await click(session, "#story-briefing");
+  await waitText(session, ".story-beat.active h2", "One system. Four essential services.");
+  await click(session, "#story-next");
+  await waitText(session, ".story-beat.active h2", "It was rewarded for efficiency.");
+  await click(session, "#story-skip");
   await waitText(session, "#start-sound-toggle", "Sound: On");
   await click(session, "#start-sound-toggle");
   await waitText(session, "#start-sound-toggle", "Sound: Muted");
@@ -140,6 +145,9 @@ try {
   await click(session, ".draft-card");
   await waitElement(session, ".action-button:not([disabled])");
   await waitText(session, "#ap-value", "3/3");
+  await waitText(session, "#governance-state", "UNREGULATED");
+  const authorityText = await text(session, ".governance-panel");
+  if (!authorityText.includes("EFFICIENCY AT ALL COSTS")) fail("Governance panel did not expose the optimisation mandate.");
 
   await click(session, ".action-button:not([disabled])");
   await waitText(session, "#ap-value", "2/3");
@@ -224,7 +232,7 @@ try {
   console.log(JSON.stringify({
     browser: "Google Chrome via ChromeDriver",
     viewport,
-    flow: ["entry", "seeded run", "tool draft", "legal action", "undo", "commit", "save", "reload", "resume"],
+    flow: ["entry", "story briefing", "seeded run", "governance state", "tool draft", "legal action", "undo", "commit", "save", "reload", "resume"],
     tutorialFlow: ["read danger", "break cascade", "contain safely", "restore control", "exit without overwriting campaign"],
     screenshot: "verification/browser-smoke.png",
     tutorialScreenshot: "verification/tutorial-smoke.png",
