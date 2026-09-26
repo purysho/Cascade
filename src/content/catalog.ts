@@ -24,6 +24,8 @@ export const RULES: Rules = deepFreeze(rulesData);
 export const SCENARIOS: readonly Scenario[] = deepFreeze(scenarioData.scenarios as Scenario[]);
 export const TUTORIALS: readonly TutorialSpec[] = deepFreeze(tutorialData.tutorials as TutorialSpec[]);
 export const CONTENT_VERSION = "0.2.0";
-export const CONTENT_HASH = fingerprint({ rules: RULES, scenarios: SCENARIOS, tutorials: TUTORIALS, version: CONTENT_VERSION });
+// Tutorial copy/content is independently verified by tutorial definition fingerprints.
+ // Keep the core content hash stable so adding guided training does not invalidate normal saved crises.
+export const CONTENT_HASH = fingerprint({ rules: RULES, scenarios: SCENARIOS, version: CONTENT_VERSION });
 export const ORDERS = Object.fromEntries(RULES.directives.map(d => [d.id, d])) as Record<DirectiveId, Directive>;
 deepFreeze(ORDERS);
