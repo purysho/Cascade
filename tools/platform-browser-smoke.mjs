@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { basename, resolve } from "node:path";
 
@@ -14,7 +14,8 @@ rmSync(profile, { recursive: true, force: true });
 function driverFromEnv(envName, executable, fallback) {
   const location = process.env[envName];
   if (!location) return fallback;
-  if (basename(location).toLowerCase().includes("driver")) return location;
+  if (existsSync(location) && statSync(location).isDirectory()) return resolve(location, executable);
+  if (basename(location).toLowerCase().endsWith(".exe")) return location;
   return resolve(location, executable);
 }
 
