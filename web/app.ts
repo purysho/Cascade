@@ -44,6 +44,7 @@ const ACTION_LABELS: Record<string, { title: string; hint: string }> = {
 const SAVE_KEY = "cascade.save.v1";
 const SAVE_META_KEY = "cascade.save.meta.v1";
 const SETTINGS_KEY = "cascade.settings.v1";
+const CHATGPT_ICON_URL = "https://images.ctfassets.net/j22is2dtoxu1/intercom-img-d177d076c9a5453052925143/49d5d812b0a6fcc20a14faa8c629d9fb/icon-ios-1024_401x.png?fm=webp&q=80&w=1024";
 const TAB_ID = (() => {
   const values = new Uint32Array(2);
   crypto.getRandomValues(values);
@@ -1273,4 +1274,13 @@ window.addEventListener("storage", event => {
 loadSettings();
 loadResume();
 must<HTMLInputElement>("#seed-input").value = makeSeed();
+
+const bootScreen = document.querySelector<HTMLElement>("#boot-screen");
+const chatgptLogo = document.querySelector<HTMLImageElement>("#chatgpt-credit-logo");
+if (chatgptLogo && location.protocol !== "file:") {
+  chatgptLogo.src = CHATGPT_ICON_URL;
+  chatgptLogo.addEventListener("load", () => { chatgptLogo.hidden = false; }, { once: true });
+}
+window.setTimeout(() => bootScreen?.classList.add("loaded"), reducedBySystem ? 80 : 1350);
+
 requestAnimationFrame(drawCity);
