@@ -17,6 +17,7 @@
     "browser:smoke": "node tools/browser-smoke.mjs",
     "stage5:smoke": "node tools/stage5-smoke.mjs",
     "launch:capture": "node tools/capture-launch-media.mjs",
+    "launch:video": "node tools/render-brag.mjs",
     "platform:smoke": "node tools/platform-browser-smoke.mjs",
     "package": "npm run web:build && node tools/package-release.mjs",
     "release:verify": "node tools/verify-release.mjs",
