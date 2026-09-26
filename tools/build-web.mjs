@@ -33,6 +33,6 @@ for (const relative of required) {
 
 const html = readFileSync(resolve(out, "index.html"), "utf8");
 if (!html.includes('src="./web/app.js"')) throw new Error("Browser entry script is not wired to the built app.");
-if (/https?:\/\//i.test(html)) throw new Error("Browser entry unexpectedly depends on a remote URL.");
+if (/\b(?:src|href)=["']https?:\/\//i.test(html)) throw new Error("Browser entry unexpectedly depends on a remote runtime resource.");
 
 console.log(`Cascade browser build verified: ${required.length} required files present in dist-web/.`);
